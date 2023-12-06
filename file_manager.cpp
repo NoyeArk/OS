@@ -31,7 +31,7 @@ void FileSystem::ls() {
 		std::cout << "  " << std::endl;
 	}
 
-	for (auto file : *curDirFiles) {
+	for (auto file : curFile->childFiles) {
 		std::cout << "  " << file.name << std::endl;
 	}
 }
