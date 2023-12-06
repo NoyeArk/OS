@@ -1,12 +1,22 @@
 #include "cmd.h"
 
 std::unordered_map<std::string, COMMAND> commandMap = {
-		{"ls",	   FILE_LS},
-		{"cd",     FILE_CD},
-		{"create", FILE_CREATE},
-		{"cls",    CMD_CLS},
-		{"help",   CMD_HELP},
-		{"exit",   CMD_EXIT}
+		{"format",	 FILE_FORMAT},
+		{"makdir",	 FILE_MKDIR},
+		{"rmdir",	 FILE_RMDIR},
+		{"ls",	     FILE_LS},
+		{"cd",       FILE_CD},
+		{"create",   FILE_CREATE},
+		{"open",	 FILE_OPEN},
+		{"close",	 FILE_CLOSE},
+		{"write",	 FILE_WRITE},
+		{"read",	 FILE_READ},
+		{"rm",	     FILE_RM},
+		{"back",     FILE_BACK},
+				     
+		{"cls",      CMD_CLS},
+		{"help",     CMD_HELP},
+		{"exit",     CMD_EXIT}
 };
 
 inline void Cmd::GetUserInput() {
@@ -18,6 +28,9 @@ void Cmd::AnalysisCommand() {
 	auto it = commandMap.find(userInput);
 	if (it != commandMap.end()) {
 		command = it->second;
+	}
+	else {  // 非法输入
+		std::cout << "‘" << userInput << "’不是内部或外部命令，也不是可运行的程序或批处理文件。" << std::endl << std::endl;
 	}
 }
 

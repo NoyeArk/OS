@@ -3,11 +3,11 @@
 
 #include <iostream>
 #include <unordered_map>
-#include "syscall.h"
+#include "kernel.h"
 
 /*****************************************************************//**
  * \file   cmd.h
- * \brief  对用户输入的指令进行解析
+ * \brief  对用户输入的指令进行解析，进行相关系统调用
  * 
  * \author horiki
  * \date   December 2023
@@ -20,7 +20,7 @@ class Cmd
 private:
 	bool isExit;
 	COMMAND command;		// 当前指令
-	Syscall kernel;
+	Kernel kernel;
 	std::string userInput;  
 
 	inline void GetUserInput();

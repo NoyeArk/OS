@@ -24,13 +24,13 @@
     <ClCompile Include="cmd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="syscall.cpp">
+    <ClCompile Include="keinel.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="memory.cpp">
+    <ClCompile Include="my_memory.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="thread.cpp">
+    <ClCompile Include="my_thread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,13 +41,13 @@
     <ClInclude Include="cmd.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="syscall.h">
+    <ClInclude Include="kernel.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="memory.h">
+    <ClInclude Include="my_memory.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="thread.h">
+    <ClInclude Include="my_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
