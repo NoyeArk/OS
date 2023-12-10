@@ -76,6 +76,9 @@ void FileSystem::read() {
 }
 
 void FileSystem::rm() {
+	// 删除文件
+	OutMsg("请输入要删除的文件名：");
+	std::string fileName = GetFileName();
 
 }
 // -----------------------------修改类中私有变量相关函数--------------------
