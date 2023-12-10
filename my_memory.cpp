@@ -1,5 +1,5 @@
 
-#include "memory.h"
+#include "my_memory.h"
 
 void Memory::DisplayMemUsage(int loc, bool type) {  // true-alloc false-free
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);

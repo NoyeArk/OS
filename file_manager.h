@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdlib>
 #include <chrono>
+#include <stack>
 
 /*****************************************************************//**
  * \file   file_manager.h
@@ -20,6 +21,7 @@
  *	 write：用于写文件；
  *	 read：用于读文件
  *	 rm：用于删除文件。
+ *	 back: 返回上一级目录
  * \author horiki
  * \date   December 2023
  *********************************************************************/
@@ -34,40 +36,6 @@ enum Permiss {
 	emNone
 };
 
-struct FCB {
-
-	int len;				      // 文件长度
-	int addr;					  // 物理地址
-	int flag;					  // 1:可写  0:可读  
-	std::string name;		      // 文件名
-	std::string path;			  // 文件路径
-	std::vector<FCB> childFiles;  // 链接子文件
-	std::chrono::system_clock::time_point createTime;       // 创建时间
-	std::chrono::system_clock::time_point lastEditTime;     // 最后修改时间
-
-	FCB() {
-		this->len = 0;
-		this->addr = 0;
-		this->flag = 0;
-		this->name = "";
-		this->path = "";
-		this->createTime = std::chrono::system_clock::now();
-		this->lastEditTime = this->createTime;
-	}
-
-	FCB(const std::string name, const std::string parentPath) : 
-		name(name) {
-		this->len = 0;
-		this->addr = 0;
-		this->flag = 0;
-		//this->name = name;
-		this->path = parentPath + "/" + this->name;
-		this->createTime = std::chrono::system_clock::now();
-		this->lastEditTime = this->createTime;
-	}
-
-};
-
 struct DIRTECOTY {
 	int idx;  // 索引
 	std::string name;  // 文件名
@@ -76,13 +44,59 @@ struct DIRTECOTY {
 	{}
 };
 
+enum FILE_TYPE {
+	TXT, DIR, NONE
+};
+
+struct FCB {
+
+	int len;				           // 文件长度
+	int addr;					       // 物理地址
+	int flag;					       // 1:可写  0:可读
+	FILE_TYPE type;				       // 文件类型
+	std::string name;		           // 文件名
+	std::string path;			       // 文件路径
+	std::vector<FCB> childFiles;       // 链接子文件
+	std::vector<DIRTECOTY> directory;  // 目录
+	std::chrono::system_clock::time_point createTime;       // 创建时间
+	std::chrono::system_clock::time_point lastEditTime;     // 最后修改时间
+
+	FCB() {
+		this->len = 0;
+		this->addr = 0;
+		this->flag = 0;
+		this->type = NONE;
+		this->name = "";
+		this->path = "";
+		this->directory = std::vector<DIRTECOTY>();
+		this->createTime = std::chrono::system_clock::now();
+		this->lastEditTime = this->createTime;
+	}
+
+	FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
+		name(name), type(type) {
+		this->len = 0;
+		this->addr = 0;
+		this->flag = 0;
+		//this->type = NONE;
+		//this->name = name;
+		this->directory = std::vector<DIRTECOTY>();
+		this->path = parentPath + "/" + this->name;
+		this->createTime = std::chrono::system_clock::now();
+		this->lastEditTime = this->createTime;
+
+		if (type == TXT) this->name += ".txt";
+	}
+
+};
+
 
 class FileSystem {
 private:
 	FCB rootFile;
-	std::string curPath;
-	std::vector<DIRTECOTY> directory;
-	std::vector<FCB>* curDirFiles;
+	FCB* curFile;
+	std::stack<FCB*> opFilePath;
+
 
 	// 修改类中私有变量
 	void UpdateCurFilePoint(const int& idx);
@@ -107,6 +121,7 @@ public:
 	void write();
 	void read();
 	void rm();
+	void back();
 
 	FileSystem();
 
