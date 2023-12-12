@@ -1,5 +1,7 @@
 ﻿#include "cmd.h"
 
+#include "disk.h"
+
 enum Command {
     LS,
     CD,
@@ -32,10 +34,16 @@ void test() {
     }
 }
 
+void test_disk() {
+    Disk disk;
+    disk.Write();
+}
+
 int main()
 {
 	Cmd cmd;
-	cmd.Run();
+	//cmd.Run();
     //test();
+    test_disk();
 	return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef FILE_MANAGER_H
-#define FILE_MANAGER_H
+#ifndef DIRECTORY_H
+#define DIRECTORY_H
 
 #include <iostream>
 #include <vector>

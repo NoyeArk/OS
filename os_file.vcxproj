@@ -128,7 +128,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cmd.cpp" />
-    <ClCompile Include="file_manager.cpp" />
+    <ClCompile Include="directory.cpp" />
+    <ClCompile Include="disk.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="my_memory.cpp" />
     <ClCompile Include="keinel.cpp" />
@@ -136,7 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cmd.h" />
-    <ClInclude Include="file_manager.h" />
+    <ClInclude Include="directory.h" />
+    <ClInclude Include="disk.h" />
     <ClInclude Include="my_memory.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="my_thread.h" />

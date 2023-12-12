@@ -2,7 +2,7 @@
 #define KERNEL_H
 
 #include <iostream>
-#include "file_manager.h"
+#include "directory.h"
 #include "my_memory.h"
 
 enum COMMAND

@@ -1,4 +1,4 @@
-#include "file_manager.h"
+#include "directory.h"
 
 // -----------------------------³£Á¿ÉùÃ÷-----------------------------------
 const int NOT_FIND = 99999;
