@@ -8,7 +8,7 @@
 #include <stack>
 
 /*****************************************************************//**
- * \file   file_manager.h
+ * \file   directory.h
  * \brief
  *	 format：对文件存储器进行格式化，即按照文件系统对结构对虚拟磁盘空间进行布局，并在其上创建根目录以及用于管理文件存储空间等的数据结构。
  *	 mkdir：用于创建子目录；
@@ -36,13 +36,13 @@ enum Permiss {
 	emNone
 };
 
-struct DIRTECOTY {
-	int idx;  // 索引
-	std::string name;  // 文件名
-
-	DIRTECOTY(const int idx, const std::string name) : idx(idx), name(name)
-	{}
-};
+//struct DIRTECOTY {
+//	int idx;  // 索引
+//	std::string name;  // 文件名
+//
+//	DIRTECOTY(const int idx, const std::string name) : idx(idx), name(name)
+//	{}
+//};
 
 enum FILE_TYPE {
 	TXT, DIR, NONE
@@ -57,7 +57,7 @@ struct FCB {
 	std::string name;		           // 文件名
 	std::string path;			       // 文件路径
 	std::vector<FCB> childFiles;       // 链接子文件
-	std::vector<DIRTECOTY> directory;  // 目录
+	//std::vector<DIRTECOTY> directory;  // 目录
 	std::chrono::system_clock::time_point createTime;       // 创建时间
 	std::chrono::system_clock::time_point lastEditTime;     // 最后修改时间
 
@@ -68,8 +68,8 @@ struct FCB {
 		this->type = NONE;
 		this->name = "";
 		this->path = "";
-		this->directory = std::vector<DIRTECOTY>();
-		this->createTime = std::chrono::system_clock::now();
+		//this->directory = std::vector<DIRTECOTY>();
+		//this->createTime = std::chrono::system_clock::now();
 		this->lastEditTime = this->createTime;
 	}
 
@@ -80,7 +80,7 @@ struct FCB {
 		this->flag = 0;
 		//this->type = NONE;
 		//this->name = name;
-		this->directory = std::vector<DIRTECOTY>();
+		//this->directory = std::vector<DIRTECOTY>();
 		this->path = parentPath + "/" + this->name;
 		this->createTime = std::chrono::system_clock::now();
 		this->lastEditTime = this->createTime;
@@ -91,7 +91,7 @@ struct FCB {
 };
 
 
-class FileSystem {
+class Directory {
 private:
 	FCB rootFile;
 	FCB* curFile;
@@ -123,7 +123,7 @@ public:
 	void rm();
 	void back();
 
-	FileSystem();
+	Directory();
 
 	std::string getCurPath();
 

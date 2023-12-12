@@ -4,7 +4,7 @@
 const int NOT_FIND = 99999;
 
 // -----------------------------构造函数-----------------------------------
-FileSystem::FileSystem() {
+Directory::Directory() {
 	rootFile.name = "root";
 	rootFile.path = "root";
 	//curPath = rootFile.path;
@@ -13,23 +13,23 @@ FileSystem::FileSystem() {
 
 
 // -----------------------------公开函数-----------------------------------
-void FileSystem::format() {
+void Directory::format() {
 
 }
 
-void FileSystem::mkdir() {
+void Directory::mkdir() {
 	OutMsg("请输入要创建的文件夹名：");
 	std::string fileName = GetFileName();
 
 	curFile->childFiles.push_back(FCB(fileName, curFile->path, DIR));
-	curFile->directory.push_back(DIRTECOTY(curFile->childFiles.size() - 1, fileName));
+	//curFile->directory.push_back(DIRTECOTY(curFile->childFiles.size() - 1, fileName));
 }
 
-void FileSystem::rmdir() {
+void Directory::rmdir() {
 
 }
 
-void FileSystem::ls() {
+void Directory::ls() {
 	if ((*curFile).childFiles.size() == 0) {
 		std::cout << "  " << std::endl;
 	}
@@ -39,7 +39,7 @@ void FileSystem::ls() {
 	}
 }
 
-void FileSystem::cd(std::string fileName) {
+void Directory::cd(std::string fileName) {
 	std::string name = GetFileName();
 	int idx = QueryDirectory(name);
 	if (idx == NOT_FIND) {
@@ -49,70 +49,70 @@ void FileSystem::cd(std::string fileName) {
 	UpdateCurFilePoint(idx);
 }
 
-void FileSystem::create() {
+void Directory::create() {
 	OutMsg("请输入要创建的文件：");
 	std::string fileName = GetFileName();
 
 	curFile->childFiles.push_back(FCB(fileName, curFile->path, TXT));
-	curFile->directory.push_back(DIRTECOTY(curFile->childFiles.size() - 1, fileName));
+	//curFile->directory.push_back(DIRTECOTY(curFile->childFiles.size() - 1, fileName));
 }
 
-void FileSystem::open() {
-
-}
-
-void FileSystem::close() {
+void Directory::open() {
 
 }
 
-void FileSystem::write() {
+void Directory::close() {
 
 }
 
-void FileSystem::read() {
+void Directory::write() {
 
 }
 
-void FileSystem::back() {
+void Directory::read() {
+
+}
+
+void Directory::back() {
 	curFile = opFilePath.top();
 	opFilePath.pop();
 }
 
-void FileSystem::rm() {
+void Directory::rm() {
 	// 删除文件
 	OutMsg("请输入要删除的文件名：");
 	std::string fileName = GetFileName();
 
 }
 // -----------------------------修改类中私有变量相关函数--------------------
-void FileSystem::UpdateCurFilePoint(const int& idx) {
+void Directory::UpdateCurFilePoint(const int& idx) {
 	opFilePath.push(curFile);
 	curFile = &(curFile->childFiles[idx]);
 }
 // -----------------------------错误处理-----------------------------------
-void FileSystem::Error() {
+void Directory::Error() {
 
 }
 // -----------------------------工具函数-----------------------------------
-int FileSystem::QueryDirectory(const std::string queryFile) {
-	for (auto item : curFile->directory)
-		if (item.name == queryFile)
-			return item.idx;
+int Directory::QueryDirectory(const std::string queryFile) {
+	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++) 
+		if (curFile->childFiles[ii].name == queryFile)
+			return ii;
 	return NOT_FIND;
 }
 
-inline std::string FileSystem::GetFileName() {
+inline std::string Directory::GetFileName() {
 	std::string fileName;
 	std::cin >> fileName;
 	return fileName;
 }
 
-inline void FileSystem::OutMsg(const std::string msg) {
+inline void Directory::OutMsg(const std::string msg) {
 	std::cout << msg;
 }
 
 
 // -----------------------------公开接口-----------------------------------
-std::string FileSystem::getCurPath() {
+std::string Directory::getCurPath() {
 	return curFile->path;
 }

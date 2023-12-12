@@ -1,7 +1,7 @@
 #include "kernel.h"
 
 std::string Kernel::getCurPath() {
-	return filesystem.getCurPath();
+	return directory.getCurPath();
 }
 
 // 这里使用command来代替中断类型号，应该宏定义几个中断类型
@@ -10,42 +10,42 @@ void Kernel::SysCall(COMMAND command, const std::string eax) {
 	{
 	// File指令
 	case FILE_FORMAT:
-		filesystem.format();
+		directory.format();
 		break;
 	case FILE_MKDIR:
-		filesystem.mkdir();
+		directory.mkdir();
 		break;
 	case FILE_RMDIR:
-		filesystem.rmdir();
+		directory.rmdir();
 		break;
 	case FILE_LS:
-		filesystem.ls();
+		directory.ls();
 		break;
 	case FILE_CD: {
 		std::string targetFile = eax.substr(eax.find(" ") + 1);
-		filesystem.cd(targetFile);
+		directory.cd(targetFile);
 		break;
 	}
 	case FILE_CREATE:
-		filesystem.create();
+		directory.create();
 		break;
 	case FILE_BACK:
-		filesystem.back();
+		directory.back();
 		break;
 	case FILE_OPEN:
-		filesystem.open();
+		directory.open();
 		break;
 	case FILE_CLOSE:
-		filesystem.close();
+		directory.close();
 		break;
 	case FILE_WRITE:
-		filesystem.write();
+		directory.write();
 		break;
 	case FILE_READ:
-		filesystem.read();
+		directory.read();
 		break;
 	case FILE_RM:
-		filesystem.rm();
+		directory.rm();
 		break;
 	default:
 		break;

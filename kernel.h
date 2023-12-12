@@ -18,7 +18,7 @@ enum COMMAND
 class Kernel
 {
 private:
-	FileSystem filesystem;  // 文件管理系统
+	Directory directory;  // 文件管理系统
 	Memory memorysystem;    // 内存管理系统
 public:
 	std::string getCurPath();
