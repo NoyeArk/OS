@@ -36,7 +36,7 @@ void test() {
 
 void test_disk() {
     Disk disk;
-    disk.Write();
+    disk.Test();
 }
 
 int main()
