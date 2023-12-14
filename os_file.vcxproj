@@ -132,7 +132,7 @@
     <ClCompile Include="disk.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="my_memory.cpp" />
-    <ClCompile Include="keinel.cpp" />
+    <ClCompile Include="kernel.cpp" />
     <ClCompile Include="my_thread.cpp" />
   </ItemGroup>
   <ItemGroup>

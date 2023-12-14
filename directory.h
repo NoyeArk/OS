@@ -9,7 +9,7 @@
 
 /*****************************************************************//**
  * \file   directory.h
- * \brief
+ * \brief  目录管理
  *	 format：对文件存储器进行格式化，即按照文件系统对结构对虚拟磁盘空间进行布局，并在其上创建根目录以及用于管理文件存储空间等的数据结构。
  *	 mkdir：用于创建子目录；
  *	 rmdir：用于删除目录；
@@ -26,23 +26,11 @@
  * \date   December 2023
  *********************************************************************/
 
-/**
-
-*/
-
 enum Permiss {
 	emWriteOk,
 	emReadOk,
 	emNone
 };
-
-//struct DIRTECOTY {
-//	int idx;  // 索引
-//	std::string name;  // 文件名
-//
-//	DIRTECOTY(const int idx, const std::string name) : idx(idx), name(name)
-//	{}
-//};
 
 enum FILE_TYPE {
 	TXT, DIR, NONE
@@ -51,19 +39,18 @@ enum FILE_TYPE {
 struct FCB {
 
 	int len;				           // 文件长度
-	int addr;					       // 物理地址
+	int loc;					       // 索引块号
 	int flag;					       // 1:可写  0:可读
 	FILE_TYPE type;				       // 文件类型
 	std::string name;		           // 文件名
 	std::string path;			       // 文件路径
 	std::vector<FCB> childFiles;       // 链接子文件
-	//std::vector<DIRTECOTY> directory;  // 目录
 	std::chrono::system_clock::time_point createTime;       // 创建时间
 	std::chrono::system_clock::time_point lastEditTime;     // 最后修改时间
 
 	FCB() {
 		this->len = 0;
-		this->addr = 0;
+		this->loc = 0;
 		this->flag = 0;
 		this->type = NONE;
 		this->name = "";
@@ -76,7 +63,7 @@ struct FCB {
 	FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
 		name(name), type(type) {
 		this->len = 0;
-		this->addr = 0;
+		this->loc = 0;
 		this->flag = 0;
 		//this->type = NONE;
 		//this->name = name;
@@ -97,7 +84,7 @@ private:
 	FCB* curFile;
 	std::stack<FCB*> opFilePath;
 
-
+private:
 	// 修改类中私有变量
 	void UpdateCurFilePoint(const int& idx);
 

@@ -24,7 +24,7 @@
     <ClCompile Include="cmd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="keinel.cpp">
+    <ClCompile Include="kernel.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="my_memory.cpp">

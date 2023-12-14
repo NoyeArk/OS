@@ -46,7 +46,10 @@ void Cmd::ExecuteCommand() {
 	case CMD_EXIT: Exit();
 		break;
 	default:
+		//Kernel* kernel1 = kernelThread.acquireConnection();
 		kernel.SysCall(command, userInput);
+		//kernel1->SysCall(command, userInput);
+		//kernelThread.releaseConnection(kernel1);
 		break;
 	}
 }

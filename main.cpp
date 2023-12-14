@@ -42,8 +42,8 @@ void test_disk() {
 int main()
 {
 	Cmd cmd;
-	//cmd.Run();
+	cmd.Run();
     //test();
-    test_disk();
+    //test_disk();
 	return 0;
 }

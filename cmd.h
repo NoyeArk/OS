@@ -1,11 +1,7 @@
 #ifndef CMD_H
 #define CMD_H
 
-#include <iostream>
-#include <unordered_map>
-#include "kernel.h"
-
-/*****************************************************************//**
+/*********************************************************************
  * \file   cmd.h
  * \brief  对用户输入的指令进行解析，进行相关系统调用
  * 
@@ -13,6 +9,10 @@
  * \date   December 2023
  *********************************************************************/
 
+#include <iostream>
+#include <unordered_map>
+#include "kernel.h"
+#include "my_thread.h"
 
 
 class Cmd
@@ -20,9 +20,11 @@ class Cmd
 private:
 	bool isExit;
 	COMMAND command;		// 当前指令
+	//ThreadPool<Kernel> kernelThread;
 	Kernel kernel;
 	std::string userInput;  
 
+private:
 	inline void GetUserInput();
 	void AnalysisCommand();
 	void ExecuteCommand();

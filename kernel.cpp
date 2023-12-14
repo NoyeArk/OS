@@ -1,5 +1,18 @@
 #include "kernel.h"
 
+PCB* Kernel::Fork() {
+	// 使用 C++11 随机数引擎
+	std::random_device rd;   // 获取随机设备
+	std::mt19937 mt(rd());   // 使用 Mersenne Twister 引擎
+	std::uniform_int_distribution<int> dist(1, 10000);  // 定义范围
+
+	PCB p;
+	p.pid = dist(mt);
+
+
+	return nullptr;
+}
+
 std::string Kernel::getCurPath() {
 	return directory.getCurPath();
 }

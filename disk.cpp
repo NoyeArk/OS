@@ -1,5 +1,26 @@
 #include "disk.h"
 
+void Disk::GetFreeLoc() {
+    std::vector<int> freeLoc;
+    // 900~1023块用来模拟兑换分区，不参与计算
+    for (size_t ii = 0; ii < AVAILABLE_NUM; ii++)
+        if (bitmap[ii] == 1) 
+            freeLoc.push_back(ii);
+}
+
+
+void Disk::Alloc() {
+
+}
+
+
+Disk::Disk() {
+    for (size_t ii = 0; ii < bitmap.size(); ii++) {
+        bitmap[ii] = 1;
+    }
+}
+
+
 void Disk::Read() {
 
 }

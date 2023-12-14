@@ -7,32 +7,32 @@ void Memory::DisplayMemUsage(int loc, bool type) {  // true-alloc false-free
 
 	std::cout << "  高地址" << std::endl;
 
-	for (int ii = memVector.size() - 1; ii >= 0; --ii) {
+	for (int ii = memAllocList.size() - 1; ii >= 0; --ii) {
 		if (ii == loc) {
 			if (type) SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 			else SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 		}
 		else SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		std::cout << "|       |" << std::endl;
-		if (memVector[ii].memSize < 100)
-			std::cout << "|" << memVector[ii].pid << ":" << memVector[ii].memSize << "kb |" << std::endl;
-		else std::cout << "|" << memVector[ii].pid << ":" << memVector[ii].memSize << "kb|" << std::endl;
+		if (memAllocList[ii].blockNum < 100)
+			std::cout << "|" << memAllocList[ii].pid << ":" << memAllocList[ii].blockNum << "kb |" << std::endl;
+		else std::cout << "|" << memAllocList[ii].pid << ":" << memAllocList[ii].blockNum << "kb|" << std::endl;
 		std::cout << "|_______|" << std::endl;
 	}
 }
 
 void Memory::PrintMemUsage() {
-	for (auto it = memVector.begin(); it != memVector.end(); ++it) {
+	for (auto it = memAllocList.begin(); it != memAllocList.end(); ++it) {
 		std::cout << it->pid;
-		if (it != std::prev(memVector.end()))
+		if (it != std::prev(memAllocList.end()))
 			std::cout << "→";
 	}
 	std::cout << std::endl;
 }
 
-int Memory::FirstFit(int allocSize) {  // 首次适应
-	for (int ii = 0; ii < memVector.size(); ii++) {
-		if (memVector[ii].pid == 0 && memVector[ii].memSize >= allocSize) {
+int Memory::FirstFit(int requestBlockNum) {  // 首次适应
+	for (int ii = 0; ii < memAllocList.size(); ii++) {
+		if (memAllocList[ii].pid == NULL && memAllocList[ii].blockNum >= requestBlockNum) {
 			return ii;
 		}
 	}
@@ -42,11 +42,11 @@ int Memory::FirstFit(int allocSize) {  // 首次适应
 int Memory::BestFit(int allocSize) {  // 最佳适应
 	int bestLoc = -1;
 	int bestSize = 1000000000;
-	for (int ii = 0; ii < memVector.size(); ii++) {
-		if (memVector[ii].pid == 0 && memVector[ii].memSize >= allocSize)
-			if (memVector[ii].memSize <= bestSize) {
+	for (int ii = 0; ii < memAllocList.size(); ii++) {
+		if (memAllocList[ii].pid == 0 && memAllocList[ii].blockNum >= allocSize)
+			if (memAllocList[ii].blockNum <= bestSize) {
 				bestLoc = ii;
-				bestSize = memVector[ii].memSize;
+				bestSize = memAllocList[ii].blockNum;
 			}
 	}
 	return bestLoc;
@@ -55,50 +55,65 @@ int Memory::BestFit(int allocSize) {  // 最佳适应
 int Memory::WorstFit(int allocSize) {  // 最坏适应
 	int worstLoc = -1;
 	int worstSize = 0;
-	for (int ii = 0; ii < memVector.size(); ii++) {
-		if (memVector[ii].pid == 0 && memVector[ii].memSize >= allocSize)
-			if (memVector[ii].memSize > worstSize) {
+	for (int ii = 0; ii < memAllocList.size(); ii++) {
+		if (memAllocList[ii].pid == 0 && memAllocList[ii].blockNum >= allocSize)
+			if (memAllocList[ii].blockNum > worstSize) {
 				worstLoc = ii;
-				worstSize = memVector[ii].memSize;
+				worstSize = memAllocList[ii].blockNum;
 			}
 	}
 	return worstLoc;
 }
 
+
 Memory::Memory() {
-	memVector.push_back(MCB(0, 640));
+	// 申请一块大小为2560字节的内存
+	mem = new char[MEM_SIZE];
+
+	// 对内存进行二进制操作，初始化所有位设置为0
+	std::memset(mem, 0x00, MEM_SIZE);
+
+	memAllocList.push_back(MCB(NULL, 0, BLOCK_NUM));
 	memScheTime = 0;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
-void Memory::Alloc(int pid, int allocSize) {
+
+Memory::~Memory() {
+	// 释放动态申请的内存
+	delete mem;
+}
+
+
+void Memory::Alloc(int pid, int requestBlockNum) {
 	// firstFit  bestFit  worstFit
-	int loc = FirstFit(allocSize);
+	int loc = FirstFit(requestBlockNum);
 	if (loc != INFINITY) {
-		memVector.insert(memVector.begin() + loc, MCB(pid, allocSize));
-		memVector[loc + 1].memSize -= allocSize;
+		int addr = memAllocList[loc].addr + memAllocList[loc].blockNum * BLOCK_SIZE;
+		memAllocList.insert(memAllocList.begin() + loc, MCB(pid, addr, requestBlockNum));
+		memAllocList[loc + 1].blockNum -= requestBlockNum;
 	}
-	else std::cout << "mem is not available!" << std::endl;
-	DisplayMemUsage(loc, true);
+	else std::cout << "memory is not available!" << std::endl;
+	//DisplayMemUsage(loc, true);
 }
 
 void Memory::Free(int pid, int freeSize) {
 	int freeLoc = -1;
 
 	std::vector<MCB> tempVector;
-	for (size_t ii = 0; ii < memVector.size(); ii++) {
-		if (memVector[ii].pid == pid) {
-			memVector[ii].pid = 0;
+	for (size_t ii = 0; ii < memAllocList.size(); ii++) {
+		if (memAllocList[ii].pid == pid) {
+			memAllocList[ii].pid = 0;
 			freeLoc = ii;
-			for (auto it = memVector.begin(); it != memVector.end(); ++it) {
+			for (auto it = memAllocList.begin(); it != memAllocList.end(); ++it) {
 				if (it->pid != 0)
 					continue;
 				auto nextIt = std::next(it);
-				if (nextIt != memVector.end() && nextIt->pid == 0) {
-					freeLoc = std::distance(memVector.begin(), it);
+				if (nextIt != memAllocList.end() && nextIt->pid == 0) {
+					freeLoc = std::distance(memAllocList.begin(), it);
 
-					it->memSize += nextIt->memSize;
-					it = memVector.erase(nextIt);
+					it->blockNum += nextIt->blockNum;
+					it = memAllocList.erase(nextIt);
 					--it;
 				}
 			}
