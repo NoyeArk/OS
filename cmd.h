@@ -11,6 +11,8 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <string>
+
 #include "kernel.h"
 #include "my_thread.h"
 

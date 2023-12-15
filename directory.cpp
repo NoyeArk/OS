@@ -7,8 +7,16 @@ const int NOT_FIND = 99999;
 Directory::Directory() {
 	rootFile.name = "root";
 	rootFile.path = "root";
-	//curPath = rootFile.path;
 	curFile = &rootFile;
+
+	TestRead();
+}
+// -----------------------------析构函数-----------------------------------
+Directory::~Directory() {
+	// 释放指针
+	/*if (curFile) {
+		delete curFile;
+	}*/
 }
 
 
@@ -17,17 +25,19 @@ void Directory::format() {
 
 }
 
+
 void Directory::mkdir() {
 	OutMsg("请输入要创建的文件夹名：");
 	std::string fileName = GetFileName();
 
 	curFile->childFiles.push_back(FCB(fileName, curFile->path, DIR));
-	//curFile->directory.push_back(DIRTECOTY(curFile->childFiles.size() - 1, fileName));
 }
+
 
 void Directory::rmdir() {
 
 }
+
 
 void Directory::ls() {
 	if ((*curFile).childFiles.size() == 0) {
@@ -53,12 +63,17 @@ void Directory::create() {
 	OutMsg("请输入要创建的文件：");
 	std::string fileName = GetFileName();
 
-	curFile->childFiles.push_back(FCB(fileName, curFile->path, TXT));
-	//curFile->directory.push_back(DIRTECOTY(curFile->childFiles.size() - 1, fileName));
+	curFile->childFiles.push_back(FCB(fileName, curFile->path, DATA));
 }
 
-void Directory::open() {
-
+FCB* Directory::open(const std::string& fileName) {
+	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++)
+		if (curFile->childFiles[ii].name == fileName) {
+			OutMsg("文件" + fileName + "：");
+			return &(curFile->childFiles[ii]);
+		}
+	OutMsg("错误：未找到相关文件");
+	Error();
 }
 
 void Directory::close() {
@@ -109,6 +124,14 @@ inline std::string Directory::GetFileName() {
 
 inline void Directory::OutMsg(const std::string msg) {
 	std::cout << msg;
+}
+
+
+void Directory::TestRead() {
+	FCB initFile("boot", curFile->path, DATA);
+	initFile.len = 1;  // 占用1块
+	initFile.addr = 0; // 0块开始
+	curFile->childFiles.push_back(initFile);
 }
 
 

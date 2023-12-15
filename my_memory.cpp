@@ -1,18 +1,13 @@
-
 #include "my_memory.h"
 
-void Memory::DisplayMemUsage(int loc, bool type) {  // true-alloc false-free
+void Memory::DisplayMemUsage() {  
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 	std::cout << "====" << ++memScheTime << "====" << std::endl;
 
 	std::cout << "  ¸ßµØÖ·" << std::endl;
 
 	for (int ii = memAllocList.size() - 1; ii >= 0; --ii) {
-		if (ii == loc) {
-			if (type) SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-			else SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-		}
-		else SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		std::cout << "|       |" << std::endl;
 		if (memAllocList[ii].blockNum < 100)
 			std::cout << "|" << memAllocList[ii].pid << ":" << memAllocList[ii].blockNum << "kb |" << std::endl;
@@ -85,17 +80,25 @@ Memory::~Memory() {
 }
 
 
-void Memory::Alloc(int pid, int requestBlockNum) {
+int Memory::Alloc(int pid, int requestBlockNum) {
 	// firstFit  bestFit  worstFit
 	int loc = FirstFit(requestBlockNum);
 	if (loc != INFINITY) {
-		int addr = memAllocList[loc].addr + memAllocList[loc].blockNum * BLOCK_SIZE;
-		memAllocList.insert(memAllocList.begin() + loc, MCB(pid, addr, requestBlockNum));
+		std::lock_guard<std::mutex> lock(listMutex);
+
+		int beginAddr = memAllocList[loc].beginLoc + memAllocList[loc].blockNum;
+		memAllocList.insert(memAllocList.begin() + loc, MCB(pid, beginAddr, requestBlockNum));
 		memAllocList[loc + 1].blockNum -= requestBlockNum;
+		
+		return beginAddr;
 	}
-	else std::cout << "memory is not available!" << std::endl;
+	else {
+		std::cout << "memory is not available!" << std::endl;
+		return INFINITY;
+	}
 	//DisplayMemUsage(loc, true);
 }
+
 
 void Memory::Free(int pid, int freeSize) {
 	int freeLoc = -1;
@@ -120,5 +123,10 @@ void Memory::Free(int pid, int freeSize) {
 			break;
 		}
 	}
-	DisplayMemUsage(freeLoc, false);
+	//DisplayMemUsage(freeLoc, false);
+}
+
+void Memory::AssignMem(int offset, char* blockData) {
+	std::lock_guard<std::mutex> lock(memMutex);
+	std::memcpy(mem, blockData, BLOCK_SIZE);
 }

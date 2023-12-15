@@ -36,7 +36,12 @@ void test() {
 
 void test_disk() {
     Disk disk;
-    disk.Test();
+    disk.Write(0, "horiki horiki horiki horiki horiki horiki");
+    disk.Read(0, 1);
+}
+
+void test_read() {
+
 }
 
 int main()
@@ -44,6 +49,6 @@ int main()
 	Cmd cmd;
 	cmd.Run();
     //test();
-    //test_disk();
+    //test_read();
 	return 0;
 }

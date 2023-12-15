@@ -13,7 +13,6 @@
 #include <fstream>
 #include <bitset>
 #include <vector>
-//#include <afx.h>
 
 #define BLOCK_NUM      1024  // 1024¿é£º0~1023
 #define AVAILABLE_NUM  900   // 900¿é£º 0~899
@@ -22,6 +21,7 @@
 class Disk
 {
 private:
+	std::fstream rwCursor;
 	std::bitset<BLOCK_NUM> bitmap;
 
 private:
@@ -31,10 +31,11 @@ private:
 
 public:
 	Disk();
+	~Disk();
 
-	void Read();
-	void Write();
-	void Test();
+	char* Read(const int& addr, const int& blockNum);
+	void Write(const int& addr, const std::string& dataToWrite);
+	void CreateDisk();
 };
 
 #endif

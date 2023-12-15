@@ -33,28 +33,29 @@ enum Permiss {
 };
 
 enum FILE_TYPE {
-	TXT, DIR, NONE
+	DATA, DIR, NONE
 };
 
 struct FCB {
 
-	int len;				           // 文件长度
-	int loc;					       // 索引块号
-	int flag;					       // 1:可写  0:可读
+	int len;				           // 文件长度-文件所占块数
+	int addr;					       // 索引块号
 	FILE_TYPE type;				       // 文件类型
+	bool isModified;				   // 是否被修改
 	std::string name;		           // 文件名
 	std::string path;			       // 文件路径
+	int authorization;				   // 1:可写  0:可读
 	std::vector<FCB> childFiles;       // 链接子文件
-	std::chrono::system_clock::time_point createTime;       // 创建时间
-	std::chrono::system_clock::time_point lastEditTime;     // 最后修改时间
+	std::chrono::system_clock::time_point createTime;    // 创建时间
+	std::chrono::system_clock::time_point lastEditTime;  // 最后修改时间
 
 	FCB() {
 		this->len = 0;
-		this->loc = 0;
-		this->flag = 0;
+		this->addr = 0;
 		this->type = NONE;
 		this->name = "";
 		this->path = "";
+		this->authorization = 0;
 		//this->directory = std::vector<DIRTECOTY>();
 		//this->createTime = std::chrono::system_clock::now();
 		this->lastEditTime = this->createTime;
@@ -63,18 +64,17 @@ struct FCB {
 	FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
 		name(name), type(type) {
 		this->len = 0;
-		this->loc = 0;
-		this->flag = 0;
+		this->addr = 0;
 		//this->type = NONE;
 		//this->name = name;
+		this->authorization = 0;
 		//this->directory = std::vector<DIRTECOTY>();
 		this->path = parentPath + "/" + this->name;
 		this->createTime = std::chrono::system_clock::now();
 		this->lastEditTime = this->createTime;
 
-		if (type == TXT) this->name += ".txt";
+		if (type == DATA) this->name += ".data";
 	}
-
 };
 
 
@@ -96,21 +96,26 @@ private:
 	inline std::string GetFileName();
 	inline void OutMsg(const std::string msg);
 
+	// 测试用
+	void TestRead();
+
 public:
+	Directory();
+	~Directory();
+
 	void format();
 	void mkdir();
 	void rmdir();
 	void ls();
 	void cd(std::string fileName);
 	void create();
-	void open();
+	// 返回目标文件的FCB
+	FCB* open(const std::string& fileName);
 	void close();
 	void write();
 	void read();
 	void rm();
 	void back();
-
-	Directory();
 
 	std::string getCurPath();
 

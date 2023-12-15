@@ -10,12 +10,15 @@
  *********************************************************************/
 
 #include <iostream>
+#include <cstring>
 #include <random>
 
 #include "directory.h"
+#include "disk.h"
 #include "my_memory.h"
 #include "my_thread.h"
-#include "disk.h"
+
+#define InitProcessBlockNum 8
 
 enum COMMAND
 {
@@ -30,12 +33,14 @@ enum COMMAND
 class Kernel
 {
 private:
-	Directory directory;  // 文件管理系统
-	Memory memorysystem;  // 内存管理系统
 	Disk disk;            // 磁盘管理系统
+	Memory memorysystem;  // 内存管理系统
+	Directory directory;  // 文件管理系统
 
 private:
-	PCB* Fork();
+	std::unique_ptr<PCB> Fork();   // 创建进程
+	void Open(const std::string& fileName);   // 打开文件
+	void Close();  // 关闭文件
 
 public:
 	std::string getCurPath();

@@ -21,16 +21,19 @@ std::unordered_map<std::string, COMMAND> commandMap = {
 
 inline void Cmd::GetUserInput() {
 	std::cout << kernel.getCurPath() << ">";
-	std::cin >> userInput;
+	std::getline(std::cin, userInput);
+	//std::cin >> userInput;
 }
 
 void Cmd::AnalysisCommand() {
-	auto it = commandMap.find(userInput);
+	std::string op = userInput.substr(0, userInput.find(" "));
+
+	auto it = commandMap.find(op);
 	if (it != commandMap.end()) {
 		command = it->second;
 	}
 	else {  // 非法输入
-		std::cout << "‘" << userInput << "’不是内部或外部命令，也不是可运行的程序或批处理文件。" << std::endl << std::endl;
+		std::cout << "‘" << op << "’不是内部或外部命令，也不是可运行的程序或批处理文件。" << std::endl << std::endl;
 	}
 }
 
