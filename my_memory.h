@@ -44,7 +44,7 @@ public:
 	
 	void DisplayMemUsage();
 	int Alloc(int pid, int requestBlockNum);
-	void Free(int pid, int freeSize);
+	void Free(int pid, int blockNumber);
 
 	void AssignMem(int offset, char* blockData);
 };

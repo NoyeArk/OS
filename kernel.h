@@ -39,6 +39,7 @@ private:
 
 private:
 	std::unique_ptr<PCB> Fork();   // 创建进程
+	void Exit(const std::unique_ptr<PCB>& process);				   // 释放进程
 	void Open(const std::string& fileName);   // 打开文件
 	void Close();  // 关闭文件
 

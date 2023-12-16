@@ -100,7 +100,7 @@ int Memory::Alloc(int pid, int requestBlockNum) {
 }
 
 
-void Memory::Free(int pid, int freeSize) {
+void Memory::Free(int pid, int blockNumber) {
 	int freeLoc = -1;
 
 	std::vector<MCB> tempVector;

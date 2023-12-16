@@ -10,16 +10,27 @@ std::unique_ptr<PCB> Kernel::Fork() {
 	// 智能指针将在其超出范围时自动释放内存
 	std::unique_ptr<PCB> p = std::make_unique<PCB>();
 	p->pid = dist(mt);  // 分配进程ID
-	int beginLoc = memorysystem.Alloc(p->pid, InitProcessBlockNum);
-	if (beginLoc != INFINITY) {
-		for (size_t ii = 0; ii < InitProcessBlockNum; ii++) 
-			p->mmu.push_back(beginLoc + ii);
+	int beginPhysicalBlockNumber = memorysystem.Alloc(p->pid, InitProcessBlockNum);
+	if (beginPhysicalBlockNumber != INFINITY) {
+		for (size_t ii = 0; ii < InitProcessBlockNum; ii++) {
+			// 虚页号 ：物理块号
+			int virtualPageNumber = ii;
+			p->pageTable.push_back(std::make_pair(virtualPageNumber, beginPhysicalBlockNumber + ii));
+		}
 	}
 	else {
 		std::cout << "进程创建失败" << std::endl;
 		return nullptr;
 	}
 	return p;
+}
+
+
+void Kernel::Exit(const std::unique_ptr<PCB>& process) {
+	// 释放进程中的内存空间，一块一块回收
+	for (auto item : process->pageTable) {
+		memorysystem.Free(process->pid, );
+	}
 }
 
 
@@ -30,18 +41,18 @@ void Kernel::Open(const std::string& fileName) {
 	}
 	else {
 		auto targetFcbPoint = directory.open(fileName);
-		if (targetFcbPoint->len > pcbPoint->mmu.size()) {
+		if (targetFcbPoint->len > pcbPoint->pageTable.size()) {
 			// 8块内存不够，继续申请
-			int applyBlockNum = targetFcbPoint->len - pcbPoint->mmu.size();
+			int applyBlockNum = targetFcbPoint->len - pcbPoint->pageTable.size();
 			int beginAddr = memorysystem.Alloc(pcbPoint->pid, applyBlockNum);
-			pcbPoint->appendMmu(beginAddr, applyBlockNum);
+			pcbPoint->AppendMmu(beginAddr, applyBlockNum);
 		}
 		// 将文件数据从外存读入内存
 		auto buff = disk.Read(targetFcbPoint->addr, targetFcbPoint->len);
 		// 分配给该进程的内存块可能并不连续，所以要一块一块复制
 		for (size_t ii = 0; ii < targetFcbPoint->len; ii++) {
 			// offset是相对于mem的偏移量
-			int offset = pcbPoint->mmu[ii] * BLOCK_SIZE;
+			int offset = pcbPoint->pageTable[ii].second * BLOCK_SIZE;
 			char* blockData = new char[BLOCK_SIZE];
 			std::memcpy(blockData, buff + ii, BLOCK_SIZE);
 			memorysystem.AssignMem(offset, blockData);
