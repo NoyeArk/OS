@@ -19,11 +19,13 @@ std::unordered_map<std::string, COMMAND> commandMap = {
 		{"exit",     CMD_EXIT}
 };
 
+
 inline void Cmd::GetUserInput() {
 	std::cout << kernel.getCurPath() << ">";
 	std::getline(std::cin, userInput);
 	//std::cin >> userInput;
 }
+
 
 void Cmd::AnalysisCommand() {
 	std::string op = userInput.substr(0, userInput.find(" "));
@@ -33,29 +35,31 @@ void Cmd::AnalysisCommand() {
 		command = it->second;
 	}
 	else {  // 非法输入
+		if (op == "") return;
 		std::cout << "‘" << op << "’不是内部或外部命令，也不是可运行的程序或批处理文件。" << std::endl << std::endl;
+		command = CMD_NULL;
 	}
 }
+
 
 void Cmd::ExecuteCommand() {
 	switch (command)
 	{
-	case CMD_CLS: 
-		std::system("cls");
-		break;
-	case CMD_HELP: Help();
-		break;
-	case CMD_EXIT: Exit();
-		break;
+	case CMD_CLS:  std::system("cls"); break;
+	case CMD_HELP: Help();  break;
+	case CMD_EXIT: Exit();  break;
+	case CMD_NULL: break;
 	default:
 		kernel.SysCall(command, userInput);
 		break;
 	}
 }
 
+
 inline void Cmd::Exit() {
 	isExit = true;
 }
+
 
 void Cmd::Help() {
 	std::cout << "文件系统操作相关指令" << std::endl;
@@ -72,6 +76,12 @@ void Cmd::Help() {
 	std::cout << "	· rm" << std::endl;
 	std::cout << "	· exit" << std::endl;
 }
+
+
+Cmd::Cmd() {
+
+}
+
 
 void Cmd::Run() {
 	isExit = false;

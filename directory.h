@@ -71,9 +71,9 @@ private:
 	void Error();  // 待实现
 
 	// 工具函数
-	int QueryDirectory(const std::string queryFile);
 	inline std::string GetFileName();
 	inline void OutMsg(const std::string msg);
+	int QueryDirectory(const std::string queryFile);
 
 	// 测试用
 	void TestRead();
@@ -85,7 +85,7 @@ public:
 	void format();
 	void mkdir();
 	void rmdir();
-	void ls();
+	void Ls();
 	void cd(std::string fileName);
 	void Create(const std::string& fileName, std::vector<int> idxBlocksId);
 	// 返回目标文件的FCB

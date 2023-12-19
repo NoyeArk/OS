@@ -3,6 +3,7 @@
 Kernel::Kernel() {
 	// 根据目录来初始化磁盘位视图
 	//for (const auto& file : )
+	this->Create("test");
 }
 
 
@@ -17,7 +18,7 @@ std::unique_ptr<PCB> Kernel::Fork() {
 	p->pid = dist(mt);  // 分配进程ID
 	std::vector<int> allocMem = memorysystem.Alloc(p->pid, InitProcessBlockNum);
 	if (!allocMem.empty()) {
-		for (size_t ii = 0; ii < InitProcessBlockNum; ii++) {
+		for (int ii = 0; ii < InitProcessBlockNum; ii++) {
 			// 虚页号 ：物理块号
 			int virtualPageNumber = ii;
 			p->pageTable.push_back(std::make_pair(virtualPageNumber, allocMem[ii]));
@@ -56,7 +57,7 @@ void Kernel::Read(const std::string& fileName) {
 		}
 	}
 	if (targetFcbPoint == nullptr) {
-		std::cout << "需先打开该文件！" << std::endl;
+		std::cout << "·需先打开该文件！" << std::endl;
 		return;
 	}
 	std::unique_ptr<PCB> pcb = Fork();  // 创建进程
@@ -70,7 +71,7 @@ void Kernel::Read(const std::string& fileName) {
 			std::vector<int> allocMem = memorysystem.Alloc(pcb->pid, requestBlockNum);
 			if (requestBlockNum > allocMem.size()) {
 				// 需要进行页置换：LRU
-				int pageNumToReplace = requestBlockNum - allocMem.size();
+				size_t pageNumToReplace = requestBlockNum - allocMem.size();
 				auto replaceAllocMem = this->PageReplaceInterrupt(pcb->pid, pageNumToReplace);
 				allocMem.insert(allocMem.end(), replaceAllocMem.begin(), replaceAllocMem.end());
 			}
@@ -87,7 +88,6 @@ void Kernel::Read(const std::string& fileName) {
 			memorysystem.WriteMem(toWriteBlockId, blockData);
 			delete[] blockData;
 		}
-		memorysystem.DisplayMemUsage();
 	}
 	this->Exit(pcb);  // 退出进程
 }
@@ -106,7 +106,7 @@ void Kernel::Write(const std::string& fileName) {
 		size_t sizeInBytes = sizeof(dataToWrite);
 		if (targetFcbPoint->len * BLOCK_SIZE < sizeInBytes) {  // 文件过小，需要从磁盘申请空间
 			// 算出需要申请的磁盘块数
-			int applyBlockNum = (targetFcbPoint->len * BLOCK_SIZE - sizeInBytes) / 40 + 1;
+			size_t applyBlockNum = (targetFcbPoint->len * BLOCK_SIZE - sizeInBytes) / 40 + 1;
 			std::vector<int> newIdxBlocksId = disk.AllocDisk(targetFcbPoint->idxBlocksId.back(), targetFcbPoint->len, applyBlockNum);
 			// 更新该文件对应的FCB中索引块
 			targetFcbPoint->ExpandFileLen(newIdxBlocksId, applyBlockNum);
@@ -124,7 +124,7 @@ void Kernel::Close(const std::string& fileName) {
 			return;
 		}
 	}
-	std::cout << "未打开该文件！" << std::endl;
+	std::cout << "·未打开该文件！" << std::endl;
 }
 
 
@@ -167,17 +167,14 @@ void Kernel::SysCall(COMMAND command, const std::string eax) {
 	std::string targetFile = eax.substr(eax.find(" ") + 1);
 	switch (command)
 	{
-	// File指令
 	case FILE_FORMAT:
-		directory.format();
-		break;
+		directory.format();       break;
 	case FILE_MKDIR:
 		directory.mkdir();        break;
 	case FILE_RMDIR:
-		directory.rmdir();
-		break;
+		directory.rmdir();        break;
 	case FILE_LS:
-		directory.ls();           break;
+		directory.Ls();           break;
 	case FILE_CD: 
 		directory.cd(targetFile); break;
 	case FILE_CREATE:

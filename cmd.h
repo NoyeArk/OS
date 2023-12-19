@@ -21,19 +21,20 @@ class Cmd
 {
 private:
 	bool isExit;
-	COMMAND command;		// 当前指令
-	//ThreadPool<Kernel> kernelThread;
 	Kernel kernel;
+	COMMAND command;		// 当前指令
 	std::string userInput;  
 
 private:
-	inline void GetUserInput();
-	void AnalysisCommand();
-	void ExecuteCommand();
 	inline void Exit();
+	void ExecuteCommand();
+	void AnalysisCommand();
+	inline void GetUserInput();
 
 	void Help();
+
 public:
+	Cmd();
 	void Run();
 };
 

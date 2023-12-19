@@ -12,7 +12,7 @@ void PCB::AppendMmu(std::vector<int> allocMem) {
 		return;
 	}
 	for (size_t ii = 0; ii < allocMem.size(); ii++) {
-		int virtualPageNumber = this->pageTable.size();
+		size_t virtualPageNumber = this->pageTable.size();
 		this->pageTable.push_back(std::make_pair(virtualPageNumber, allocMem[ii]));
 	}
 }

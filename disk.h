@@ -19,7 +19,9 @@
 #define BLOCK_NUM      1024  // 1024块：0~1023
 #define FILE_BLOCK_NUM 900   // 900块： 0~899
 #define SWAP_BLOCK_NUM 124   // 124块： 900~1023
-#define BLOCK_SIZE     320   // 块大小：40B
+#define BLOCK_SIZE     40    // 块大小：40B
+
+#define Debug 1
 
 class Disk
 {
@@ -33,9 +35,11 @@ private:
 	std::vector<int> GetFreeBlocks(int applyBlockNum);
 	// 得到索引块中对应的数据所在块号
 	std::vector<int> GetDataBlocksId(const std::vector<int>& idxBlocksNum);
-	void UpdateIdxBlock();
 	char* ReadSingleBlockFromDisk(const int& addr);
-	void WriteSingleBlockToDisk(const int& blockId, const std::string& dataToWrite);
+	void WriteSingleBlockToDisk(const int& blockId, const char* dataToWrite);
+
+	// Debug
+	void DebugCout(std::string info);
 
 public:
 	Disk();

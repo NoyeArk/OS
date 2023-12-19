@@ -3,7 +3,7 @@
 
 /*********************************************************************
  * \file   kernel.h
- * \brief  模拟系统调用实现
+ * \brief  系统内核实现
  *
  * \author horiki
  * \date   December 2023
@@ -29,7 +29,7 @@ enum COMMAND
 	FILE_CREATE, FILE_OPEN,  FILE_CLOSE, FILE_WRITE, FILE_READ, 
 	FILE_RM,     FILE_BACK,
 	// 终端相关指令
-	CMD_CLS, CMD_HELP, CMD_EXIT
+	CMD_CLS, CMD_HELP, CMD_EXIT, CMD_NULL
 };
 
 class Kernel
@@ -39,8 +39,6 @@ private:
 	Memory memorysystem;  // 内存管理系统
 	Directory directory;  // 文件管理系统
 	std::vector<FCB*> sysOpenFiles;  // 系统打开文件表
-
-	Kernel();
 
 private:
 	std::unique_ptr<PCB> Fork();                    // 创建进程
@@ -55,6 +53,8 @@ private:
 	std::vector<int> PageReplaceInterrupt(int pid, int pageNumToReplace);
 	
 public:
+	Kernel();
+
 	std::string getCurPath();
 	void SysCall(COMMAND command, const std::string eax);
 };

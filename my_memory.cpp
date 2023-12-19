@@ -12,32 +12,6 @@ MCB::MCB(int pid, std::chrono::system_clock::time_point lastUseTime) : pid(pid) 
 }
 
 
-void Memory::DisplayMemUsage() {  
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
-	std::cout << "====" << ++memScheTime << "====" << std::endl;
-
-	std::cout << "  高地址" << std::endl;
-
-	for (int ii = memAllocList.size() - 1; ii >= 0; --ii) {
-		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-		std::cout << "|       |" << std::endl;
-		if (memAllocList[ii].blockNum < 100)
-			std::cout << "|" << memAllocList[ii].pid << ":" << memAllocList[ii].blockNum << "kb |" << std::endl;
-		else std::cout << "|" << memAllocList[ii].pid << ":" << memAllocList[ii].blockNum << "kb|" << std::endl;
-		std::cout << "|_______|" << std::endl;
-	}
-}
-
-
-void Memory::PrintMemUsage() {
-	for (auto it = memAllocList.begin(); it != memAllocList.end(); ++it) {
-		std::cout << it->pid;
-		if (it != std::prev(memAllocList.end()))
-			std::cout << "→";
-	}
-	std::cout << std::endl;
-}
-
 /**
  * \name LRU 找据此时时间间隔最长的一个内存块
  * \type int 找到的内存块下标

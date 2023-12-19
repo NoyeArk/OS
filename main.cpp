@@ -36,8 +36,8 @@ void test() {
 
 void test_disk() {
     Disk disk;
-    disk.Write(0, "horiki horiki horiki horiki horiki horiki");
-    disk.Read(0, 1);
+    //disk.WriteFile(0, "horiki horiki horiki horiki horiki horiki");
+    //disk.ReadFile(0, 1);
 }
 
 void test_read() {

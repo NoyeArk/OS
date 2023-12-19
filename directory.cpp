@@ -61,8 +61,8 @@ void Directory::format() {
 void Directory::mkdir() {
 	OutMsg("请输入要创建的目录名：");
 	std::string fileName = GetFileName();
-
-	curFile->childFiles.push_back(&FCB(fileName, curFile->path, DIR));
+	FCB* fcb = new FCB(fileName, curFile->path, DIR);
+	curFile->childFiles.push_back(fcb);
 }
 
 
@@ -71,8 +71,8 @@ void Directory::rmdir() {
 }
 
 
-void Directory::ls() {
-	if ((*curFile).childFiles.size() == 0) {
+void Directory::Ls() {
+	if (curFile->childFiles.size() == 0) {
 		std::cout << "  " << std::endl;
 	}
 
@@ -190,7 +190,7 @@ void Directory::Error() {
 
 // -----------------------------工具函数-----------------------------------
 int Directory::QueryDirectory(const std::string queryFile) {
-	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++) 
+	for (int ii = 0; ii < curFile->childFiles.size(); ii++) 
 		if (curFile->childFiles[ii]->name == queryFile)
 			return ii;
 	return NOT_FIND;
@@ -210,10 +210,10 @@ inline void Directory::OutMsg(const std::string msg) {
 
 
 void Directory::TestRead() {
-	FCB initFile("boot", curFile->path, DATA);
-	initFile.len = 1;  // 占用1块
-	initFile.idxBlocksId.push_back(0); // 索引块为0
-	curFile->childFiles.push_back(&initFile);
+	//FCB* fcb = new FCB("boot", curFile->path, DATA);
+	//fcb->len = 8;  // 占用1块
+	//fcb->idxBlocksId.push_back(0); // 索引块为0
+	//curFile->childFiles.push_back(fcb);
 }
 
 

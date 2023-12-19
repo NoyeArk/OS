@@ -55,15 +55,22 @@ char* Disk::ReadSingleBlockFromDisk(const int& addr) {
 }
 
 
-void Disk::WriteSingleBlockToDisk(const int& blockId, const std::string& dataToWrite) {
+void Disk::WriteSingleBlockToDisk(const int& blockId, const char* dataToWrite) {
     if (!rwCursor.is_open()) {
-        std::cerr << "Error opening file: " << std::endl;
+        std::cerr << "Error opening disk.data" << std::endl;
         exit(-1);
     }
     rwCursor.seekg(blockId * BLOCK_SIZE);
-    rwCursor.write(dataToWrite.c_str(), dataToWrite.size());
+    rwCursor.write(dataToWrite, 2);
 
-    std::cout << "Write Successful!!!" << std::endl;
+    DebugCout("此次写入的数据为");
+    std::cout << "Disk::" << dataToWrite << std::endl;
+}
+
+
+void Disk::DebugCout(std::string info) {
+    if (!Debug) return;
+    std::cout << "Disk::" << info << std::endl;
 }
 
 
@@ -138,14 +145,14 @@ std::vector<int> Disk::AllocDisk(const int& lastIdxBlockNum, int curFileLen, int
     if (availablePosNum >= applyBlockNum) {
         // 在最后一个索引块中写入applyBlockNum个索引
         for (size_t ii = 0; ii < applyBlockNum; ii++) {
-            this->WriteSingleBlockToDisk(lastIdxBlockNum, std::to_string(dataBlocksId[curWriteIdx]));
+            this->WriteSingleBlockToDisk(lastIdxBlockNum, std::to_string(dataBlocksId[curWriteIdx]).c_str());
             ++curWriteIdx;
         }
     }
     else {
         // 最后一个不够，先在最后一个写入availablePosNum个索引
         for (size_t ii = 0; ii < availablePosNum; ii++) {
-            this->WriteSingleBlockToDisk(lastIdxBlockNum, std::to_string(dataBlocksId[curWriteIdx]));
+            this->WriteSingleBlockToDisk(lastIdxBlockNum, std::to_string(dataBlocksId[curWriteIdx]).c_str());
             ++curWriteIdx;
         }
         // 在新的索引块中写入其他的索引
@@ -153,7 +160,7 @@ std::vector<int> Disk::AllocDisk(const int& lastIdxBlockNum, int curFileLen, int
         for (auto idxBlockId : newIdxBlocksId) {
             // 每个块写10个数据
             for (size_t ii = 0; ii < 10; ii++) {
-                this->WriteSingleBlockToDisk(idxBlockId, std::to_string(dataBlocksId[curWriteIdx]));
+                this->WriteSingleBlockToDisk(idxBlockId, std::to_string(dataBlocksId[curWriteIdx]).c_str());
                 ++curWriteIdx;
                 if (curWriteIdx == dataBlocksId.size()) {
                     // 写入结束
@@ -168,11 +175,15 @@ std::vector<int> Disk::AllocDisk(const int& lastIdxBlockNum, int curFileLen, int
 
 std::vector<int> Disk::AllocFileBlock() {
     // 分配一个索引块和8个数据块
-    auto dataBlocksId = this->GetFreeBlocks(8);
     auto newIdxBlocksId = this->GetFreeBlocks(1);
+    auto dataBlocksId = this->GetFreeBlocks(8);
     // 将8个数据块的块号写入索引块中
     for (size_t ii = 0; ii < dataBlocksId.size(); ii++) {
-        this->WriteSingleBlockToDisk(newIdxBlocksId.back(), std::to_string(dataBlocksId[ii]));
+        char* newBlockData = new char[40];
+        char* oldBlockData = this->ReadSingleBlockFromDisk(newIdxBlocksId.back());
+        strcat(newBlockData, oldBlockData); // 将第二个字符串追加到结果缓冲区的末尾
+        strcat(result, oldBlockData); // 将第二个字符串追加到结果缓冲区的末尾
+        this->WriteSingleBlockToDisk(newIdxBlocksId.back(), std::to_string(dataBlocksId[ii]).c_str());
     }
     // 返回索引块号
     return newIdxBlocksId;
@@ -201,7 +212,7 @@ std::vector<char*> Disk::ReadFile(const std::vector<int>& idxBlocksNum, const in
     // 校验
     if (blockNum != dataBlocksId.size()) {
         std::cout << "目录中文件块个数与索引块中文件个数不匹配！" << std::endl;
-        return;
+        return std::vector<char*>();
     }
     for (auto blockId : dataBlocksId) {
         char* data = this->ReadSingleBlockFromDisk(blockId);
@@ -221,20 +232,20 @@ void Disk::WriteFile(const std::vector<int>& idxBlocksNum, const std::string& da
     int start = 0;
 
     while (start < dataSize) {
-        size_t length = std::min(40, dataSize - start); // 每段的最大长度为 segmentSize
+        int length = std::min(40, dataSize - start); // 每段的最大长度为 segmentSize
         std::string segment = dataToWrite.substr(start, length); // 获取子字符串
         blocksData.push_back(segment); // 将子字符串添加到结果中
 
         start += length; // 更新下一个片段的起始位置
     }
     for (size_t ii = 0; ii < blocksData.size(); ii++) {
-        this->WriteSingleBlockToDisk(dataBlocksId[ii], blocksData[ii]);
+        this->WriteSingleBlockToDisk(dataBlocksId[ii], blocksData[ii].c_str());
     }
 }
 
 
 void Disk::CreateDisk() {
-    std::size_t diskSize = 40 * BLOCK_NUM;  // 1 KB = 1024 bytes
+    int diskSize = 40 * BLOCK_NUM;  // 1 KB = 1024 bytes
 
     if (rwCursor.is_open()) {
         // 将文件指针移动到指定大小

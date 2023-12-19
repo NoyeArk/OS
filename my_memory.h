@@ -1,6 +1,14 @@
 #ifndef MY_MEMORY_H
 #define MY_MEMORY_H
 
+/*********************************************************************
+ * \file   my_memory.h
+ * \brief  内存实现
+ *
+ * \author horiki
+ * \date   December 2023
+ *********************************************************************/
+
 #include <chrono>
 #include <cmath>
 #include <iomanip>
@@ -11,7 +19,7 @@
 
 #define MEM_SIZE       2560
 #define MEM_BLOCK_SIZE 40   // 块大小：40B
-#define MEM_BLOCK_NUM  64    // 64块：0~63
+#define MEM_BLOCK_NUM  64   // 64块：0~63
 #define NULL_PROCESS   0
 
 // 使用空闲链表法组织空闲块
@@ -33,7 +41,6 @@ private:
 	std::vector<MCB> memAllocList;  // 临界资源
 
 private:
-	void PrintMemUsage();
 	int GetCurrentIntTime();
 	int LRU(int pid);
 
@@ -41,7 +48,6 @@ public:
 	Memory();
 	~Memory();
 	
-	void DisplayMemUsage();
 	std::vector<int> Alloc(int pid, int requestBlockNum);
 	void Free(const int& pid, std::vector<int> toFreeBlocksId);
 
