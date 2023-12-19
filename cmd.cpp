@@ -40,7 +40,6 @@ void Cmd::AnalysisCommand() {
 void Cmd::ExecuteCommand() {
 	switch (command)
 	{
-	// Cmd÷∏¡Ó
 	case CMD_CLS: 
 		std::system("cls");
 		break;

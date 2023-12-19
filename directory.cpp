@@ -23,7 +23,8 @@ FCB::FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
 	this->createTime = std::chrono::system_clock::now();
 	this->lastEditTime = this->createTime;
 
-	if (type == DATA) this->name += ".data";
+	if (type == DATA) 
+		this->name += ".data";
 }
 
 void FCB::ExpandFileLen(std::vector<int> newIdxBlocksId, int newApplyBlockNum) {
@@ -102,7 +103,6 @@ void Directory::Create(const std::string& fileName, std::vector<int> idxBlocksId
 FCB* Directory::OpenFile(const std::string& fileName) {
 	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++)
 		if (curFile->childFiles[ii]->name == fileName) {
-			OutMsg("文件" + fileName + "：");
 			curFile->childFiles[ii]->authorization = emDelDenied;
 			return curFile->childFiles[ii];
 		}
@@ -111,17 +111,23 @@ FCB* Directory::OpenFile(const std::string& fileName) {
 }
 
 
-void Directory::CloseFile() {
-
+void Directory::CloseFile(const std::string& fileName) {
+	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++) {
+		if (curFile->childFiles[ii]->name == fileName) {
+			curFile->childFiles[ii]->authorization = emNone;
+			break;
+		}
+	}
 }
 
 
 FCB* Directory::WriteFile(const std::string& fileName) {
-	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++)
+	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++) {
 		if (curFile->childFiles[ii]->name == fileName) {
 			OutMsg("文件" + fileName + "：");
 			return curFile->childFiles[ii];
 		}
+	}
 	OutMsg("错误：未找到相关文件");
 	Error();
 }
@@ -164,7 +170,7 @@ std::vector<int> Directory::Rm(const std::string& toRemoveFile) {
 		delete fcb;
 		return idxBlocksId;
 	}
-	OutMsg("要删除的文件不存在!");
+	OutMsg("要删除的文件不存在！");
 	return std::vector<int>();
 }
 

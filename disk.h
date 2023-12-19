@@ -35,11 +35,14 @@ private:
 	std::vector<int> GetDataBlocksId(const std::vector<int>& idxBlocksNum);
 	void UpdateIdxBlock();
 	char* ReadSingleBlockFromDisk(const int& addr);
-	void WriteSingleBlockToDisk(const int& addr, const std::string& dataToWrite);
+	void WriteSingleBlockToDisk(const int& blockId, const std::string& dataToWrite);
 
 public:
 	Disk();
 	~Disk();
+
+	void WriteSwap(const std::vector<char*>& toWriteBlocksData);
+	void ReadSwap();
 
 	std::vector<int> QueryFreeFileBlock();
 	void SetBitMap(int blockId, bool data);
@@ -47,8 +50,8 @@ public:
 	std::vector<int> AllocFileBlock();
 	void FreeDisk(const std::vector<int>& toFreeIdxBlocksId);
 	void CreateDisk();
-	std::vector<char*> Read(const std::vector<int>& idxBlocksNum, const int& blockNum);
-	void Write(const std::vector<int>& idxBlocksNum, const std::string& dataToWrite);
+	std::vector<char*> ReadFile(const std::vector<int>& idxBlocksNum, const int& blockNum);
+	void WriteFile(const std::vector<int>& idxBlocksNum, const std::string& dataToWrite);
 };
 
 #endif

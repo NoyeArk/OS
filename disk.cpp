@@ -55,12 +55,12 @@ char* Disk::ReadSingleBlockFromDisk(const int& addr) {
 }
 
 
-void Disk::WriteSingleBlockToDisk(const int& addr, const std::string& dataToWrite) {
+void Disk::WriteSingleBlockToDisk(const int& blockId, const std::string& dataToWrite) {
     if (!rwCursor.is_open()) {
         std::cerr << "Error opening file: " << std::endl;
         exit(-1);
     }
-    rwCursor.seekg(addr * BLOCK_SIZE);
+    rwCursor.seekg(blockId * BLOCK_SIZE);
     rwCursor.write(dataToWrite.c_str(), dataToWrite.size());
 
     std::cout << "Write Successful!!!" << std::endl;
@@ -80,6 +80,21 @@ Disk::Disk() {
 Disk::~Disk() {
     // 关闭文件
     rwCursor.close();
+}
+
+
+void Disk::WriteSwap(const std::vector<char*>& toWriteBlocksData) {
+    int swapBlockId = 900;
+    for (auto blockData : toWriteBlocksData) {
+        this->WriteSingleBlockToDisk(swapBlockId, blockData);
+        ++swapBlockId;
+        delete blockData;
+    }
+}
+
+
+void Disk::ReadSwap() {
+
 }
 
 
@@ -155,10 +170,11 @@ std::vector<int> Disk::AllocFileBlock() {
     // 分配一个索引块和8个数据块
     auto dataBlocksId = this->GetFreeBlocks(8);
     auto newIdxBlocksId = this->GetFreeBlocks(1);
-    // 每个块写8个数据
+    // 将8个数据块的块号写入索引块中
     for (size_t ii = 0; ii < dataBlocksId.size(); ii++) {
         this->WriteSingleBlockToDisk(newIdxBlocksId.back(), std::to_string(dataBlocksId[ii]));
     }
+    // 返回索引块号
     return newIdxBlocksId;
 }
 
@@ -179,7 +195,7 @@ void Disk::FreeDisk(const std::vector<int>& toFreeIdxBlocksId) {
 * \param addr：    要读的起始块
 * \param blockNum：要读的块个数
 */
-std::vector<char*> Disk::Read(const std::vector<int>& idxBlocksNum, const int& blockNum) {
+std::vector<char*> Disk::ReadFile(const std::vector<int>& idxBlocksNum, const int& blockNum) {
     std::vector<char*> blockDatas;
     std::vector<int> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
     // 校验
@@ -197,7 +213,7 @@ std::vector<char*> Disk::Read(const std::vector<int>& idxBlocksNum, const int& b
 }
 
 
-void Disk::Write(const std::vector<int>& idxBlocksNum, const std::string& dataToWrite) {
+void Disk::WriteFile(const std::vector<int>& idxBlocksNum, const std::string& dataToWrite) {
     std::vector<int> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
     std::vector<std::string> blocksData;
 

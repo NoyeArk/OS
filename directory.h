@@ -90,7 +90,7 @@ public:
 	void Create(const std::string& fileName, std::vector<int> idxBlocksId);
 	// 返回目标文件的FCB
 	FCB* OpenFile(const std::string& fileName);
-	void CloseFile();
+	void CloseFile(const std::string& fileName);
 	FCB* WriteFile(const std::string& fileName);
 	void ReadFile();
 	std::vector<int> Rm(const std::string& toRemoveFile);
