@@ -33,18 +33,18 @@ private:
 
 private:
 	void PrintMemUsage();
-
 	int FirstFit(int allocSize);
 	int BestFit(int allocSize);
 	int WorstFit(int allocSize);
+	void MergeAvailableBlock();
 
 public:
 	Memory();
 	~Memory();
 	
 	void DisplayMemUsage();
-	int Alloc(int pid, int requestBlockNum);
-	void Free(int pid, int blockNumber);
+	std::vector<int> Alloc(int pid, int requestBlockNum);
+	void Free(const int& pid);
 
 	void AssignMem(int offset, char* blockData);
 };

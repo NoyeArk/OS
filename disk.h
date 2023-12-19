@@ -9,33 +9,46 @@
  * \date   December 2023
  *********************************************************************/
 
-#include <iostream>
-#include <fstream>
 #include <bitset>
+#include <fstream>
+#include <iostream>
+#include <mutex>
 #include <vector>
+#include <sstream>
 
 #define BLOCK_NUM      1024  // 1024块：0~1023
-#define AVAILABLE_NUM  900   // 900块： 0~899
+#define FILE_BLOCK_NUM 900   // 900块： 0~899
+#define SWAP_BLOCK_NUM 124   // 124块： 900~1023
 #define BLOCK_SIZE     320   // 块大小：40B
 
 class Disk
 {
 private:
 	std::fstream rwCursor;
-	std::bitset<BLOCK_NUM> bitmap;
+	std::bitset<FILE_BLOCK_NUM> fileBitMap;
+	std::bitset<SWAP_BLOCK_NUM> swapBitMap;
+	std::mutex fileBitMapMutex;
 
 private:
-	// 位示图相关操作
-	void GetFreeLoc();
-	void Alloc();
+	std::vector<int> GetFreeBlocks(int applyBlockNum);
+	// 得到索引块中对应的数据所在块号
+	std::vector<int> GetDataBlocksId(const std::vector<int>& idxBlocksNum);
+	void UpdateIdxBlock();
+	char* ReadSingleBlockFromDisk(const int& addr);
+	void WriteSingleBlockToDisk(const int& addr, const std::string& dataToWrite);
 
 public:
 	Disk();
 	~Disk();
 
-	char* Read(const int& addr, const int& blockNum);
-	void Write(const int& addr, const std::string& dataToWrite);
+	std::vector<int> QueryFreeFileBlock();
+	void SetBitMap(int blockId, bool data);
+	std::vector<int> AllocDisk(const int& lastIdxBlockNum, int curFileLen, int applyBlockNum);
+	std::vector<int> AllocFileBlock();
+	void FreeDisk(const std::vector<int>& toFreeIdxBlocksId);
 	void CreateDisk();
+	std::vector<char*> Read(const std::vector<int>& idxBlocksNum, const int& blockNum);
+	void Write(const std::vector<int>& idxBlocksNum, const std::string& dataToWrite);
 };
 
 #endif

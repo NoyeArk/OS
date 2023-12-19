@@ -9,8 +9,9 @@
  * \date   December 2023
  *********************************************************************/
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
+#include <string>
 #include <random>
 
 #include "directory.h"
@@ -19,6 +20,7 @@
 #include "my_thread.h"
 
 #define InitProcessBlockNum 8
+#define BLOCK_SIZE     320   // 块大小：40B
 
 enum COMMAND
 {
@@ -33,15 +35,22 @@ enum COMMAND
 class Kernel
 {
 private:
+	PCB sysProcess;       // 模拟系统进程
+
 	Disk disk;            // 磁盘管理系统
 	Memory memorysystem;  // 内存管理系统
 	Directory directory;  // 文件管理系统
 
+	Kernel();
 private:
 	std::unique_ptr<PCB> Fork();   // 创建进程
 	void Exit(const std::unique_ptr<PCB>& process);				   // 释放进程
-	void Open(const std::string& fileName);   // 打开文件
-	void Close();  // 关闭文件
+	void Open(const std::string& fileName);    // 打开文件
+	void Read(const std::string& fileName);    // 读出文件
+	void Write(const std::string& fileName);   // 写入文件
+	void Close(const std::string& fileName);   // 关闭文件
+	void Delete(const std::string& fileName);  // 删除文件
+	void Create(const std::string& fileName);  // 打开文件
 
 public:
 	std::string getCurPath();

@@ -29,6 +29,7 @@
 enum Permiss {
 	emWriteOk,
 	emReadOk,
+	emDelDenied,
 	emNone
 };
 
@@ -39,42 +40,20 @@ enum FILE_TYPE {
 struct FCB {
 
 	int len;				           // 文件长度-文件所占块数
-	int addr;					       // 索引块号
 	FILE_TYPE type;				       // 文件类型
 	bool isModified;				   // 是否被修改
 	std::string name;		           // 文件名
 	std::string path;			       // 文件路径
 	int authorization;				   // 1:可写  0:可读
-	std::vector<FCB> childFiles;       // 链接子文件
+	std::vector<FCB*> childFiles;      // 链接子文件
+	std::vector<int> idxBlocksId;	   // 索引块号
 	std::chrono::system_clock::time_point createTime;    // 创建时间
 	std::chrono::system_clock::time_point lastEditTime;  // 最后修改时间
 
-	FCB() {
-		this->len = 0;
-		this->addr = 0;
-		this->type = NONE;
-		this->name = "";
-		this->path = "";
-		this->authorization = 0;
-		//this->directory = std::vector<DIRTECOTY>();
-		//this->createTime = std::chrono::system_clock::now();
-		this->lastEditTime = this->createTime;
-	}
+	FCB();
+	FCB(const std::string name, const std::string parentPath, FILE_TYPE type);
+	void ExpandFileLen(std::vector<int> newIdxBlocksId, int newApplyBlockNum);
 
-	FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
-		name(name), type(type) {
-		this->len = 0;
-		this->addr = 0;
-		//this->type = NONE;
-		//this->name = name;
-		this->authorization = 0;
-		//this->directory = std::vector<DIRTECOTY>();
-		this->path = parentPath + "/" + this->name;
-		this->createTime = std::chrono::system_clock::now();
-		this->lastEditTime = this->createTime;
-
-		if (type == DATA) this->name += ".data";
-	}
 };
 
 
@@ -108,14 +87,14 @@ public:
 	void rmdir();
 	void ls();
 	void cd(std::string fileName);
-	void create();
+	void Create(const std::string& fileName, std::vector<int> idxBlocksId);
 	// 返回目标文件的FCB
-	FCB* open(const std::string& fileName);
-	void close();
-	void write();
-	void read();
-	void rm();
-	void back();
+	FCB* OpenFile(const std::string& fileName);
+	void CloseFile();
+	FCB* WriteFile(const std::string& fileName);
+	void ReadFile();
+	std::vector<int> Rm(const std::string& toRemoveFile);
+	void Back();
 
 	std::string getCurPath();
 

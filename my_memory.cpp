@@ -16,6 +16,7 @@ void Memory::DisplayMemUsage() {
 	}
 }
 
+
 void Memory::PrintMemUsage() {
 	for (auto it = memAllocList.begin(); it != memAllocList.end(); ++it) {
 		std::cout << it->pid;
@@ -25,6 +26,7 @@ void Memory::PrintMemUsage() {
 	std::cout << std::endl;
 }
 
+
 int Memory::FirstFit(int requestBlockNum) {  // 首次适应
 	for (int ii = 0; ii < memAllocList.size(); ii++) {
 		if (memAllocList[ii].pid == NULL && memAllocList[ii].blockNum >= requestBlockNum) {
@@ -33,6 +35,7 @@ int Memory::FirstFit(int requestBlockNum) {  // 首次适应
 	}
 	return INFINITY;
 }
+
 
 int Memory::BestFit(int allocSize) {  // 最佳适应
 	int bestLoc = -1;
@@ -47,6 +50,7 @@ int Memory::BestFit(int allocSize) {  // 最佳适应
 	return bestLoc;
 }
 
+
 int Memory::WorstFit(int allocSize) {  // 最坏适应
 	int worstLoc = -1;
 	int worstSize = 0;
@@ -58,6 +62,22 @@ int Memory::WorstFit(int allocSize) {  // 最坏适应
 			}
 	}
 	return worstLoc;
+}
+
+
+void Memory::MergeAvailableBlock() {
+	// 从头开始遍历，找第一个空闲分区
+	for (auto it = memAllocList.begin(); it != memAllocList.end(); ++it) {
+		if (it->pid != NULL)
+			continue;
+		auto nextIt = std::next(it);
+		// 下一个位置不为结束 并且 也为空闲分区则进行合并
+		if (nextIt != memAllocList.end() && nextIt->pid == NULL) {
+			it->blockNum += nextIt->blockNum;
+			it = memAllocList.erase(nextIt);
+			--it;
+		}
+	}
 }
 
 
@@ -80,51 +100,53 @@ Memory::~Memory() {
 }
 
 
-int Memory::Alloc(int pid, int requestBlockNum) {
+/**
+ * \name Alloc             进程申请内存
+ * \type std::vector<int>  申请的内存物理块号集合
+ * \param pid              申请进程号
+ * \param requestBlockNum  申请物理块数
+ * \brief                  申请得到的内存块可能并不连续
+ */
+std::vector<int> Memory::Alloc(int pid, int requestBlockNum) {
+	std::vector<int> allocateMem;
 	// firstFit  bestFit  worstFit
-	int loc = FirstFit(requestBlockNum);
-	if (loc != INFINITY) {
+	int listIdx = FirstFit(requestBlockNum);
+	if (listIdx != INFINITY) {
+		// 对互斥量memAllocList进行操作 加锁
 		std::lock_guard<std::mutex> lock(listMutex);
-
-		int beginAddr = memAllocList[loc].beginLoc + memAllocList[loc].blockNum;
-		memAllocList.insert(memAllocList.begin() + loc, MCB(pid, beginAddr, requestBlockNum));
-		memAllocList[loc + 1].blockNum -= requestBlockNum;
+		// 更新内存使用链表
+		int beginAddr = memAllocList[listIdx].beginLoc + memAllocList[listIdx].blockNum;
+		memAllocList.insert(memAllocList.begin() + listIdx, MCB(pid, beginAddr, requestBlockNum));
+		memAllocList[listIdx + 1].blockNum -= requestBlockNum;
 		
-		return beginAddr;
+		for (size_t ii = 0; ii < requestBlockNum; ii++) {
+			allocateMem.push_back(beginAddr + ii);
+		}
+		return allocateMem;
 	}
 	else {
 		std::cout << "memory is not available!" << std::endl;
-		return INFINITY;
+		return {};
 	}
 	//DisplayMemUsage(loc, true);
 }
 
-
-void Memory::Free(int pid, int blockNumber) {
-	int freeLoc = -1;
-
-	std::vector<MCB> tempVector;
+/**
+ * \name Free          释放进程所拥有的内存
+ * \param pid		   进程号
+ * \param blockNumber  释放内存块数
+ * \brief              一次性释放全部的内存
+ */
+void Memory::Free(const int& pid) {
+	std::lock_guard<std::mutex> lock(listMutex);
 	for (size_t ii = 0; ii < memAllocList.size(); ii++) {
 		if (memAllocList[ii].pid == pid) {
-			memAllocList[ii].pid = 0;
-			freeLoc = ii;
-			for (auto it = memAllocList.begin(); it != memAllocList.end(); ++it) {
-				if (it->pid != 0)
-					continue;
-				auto nextIt = std::next(it);
-				if (nextIt != memAllocList.end() && nextIt->pid == 0) {
-					freeLoc = std::distance(memAllocList.begin(), it);
-
-					it->blockNum += nextIt->blockNum;
-					it = memAllocList.erase(nextIt);
-					--it;
-				}
-			}
-			break;
+			memAllocList[ii].pid = NULL;
+			this->MergeAvailableBlock();
 		}
 	}
-	//DisplayMemUsage(freeLoc, false);
 }
+
 
 void Memory::AssignMem(int offset, char* blockData) {
 	std::lock_guard<std::mutex> lock(memMutex);
