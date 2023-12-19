@@ -55,13 +55,20 @@ char* Disk::ReadSingleBlockFromDisk(const int& addr) {
 }
 
 
-void Disk::WriteSingleBlockToDisk(const int& blockId, const char* dataToWrite) {
+/**
+ * \name WriteSingleBlockToDisk  对磁盘中一个块的内容进行改写
+ * \param effectiveAddr          要写入的有效地址
+ * \param writeLen               要写入的数据大小，以字节为单位
+ * \param dataToWrite            要写入的数据
+ * \brief                        细致到对该块的第几个字节开始写入,offset以字节为单位
+ */
+void Disk::WriteSingleBlockToDisk(const int& effectiveAddr, const int& writeLen, const char* dataToWrite) {
     if (!rwCursor.is_open()) {
         std::cerr << "Error opening disk.data" << std::endl;
         exit(-1);
     }
-    rwCursor.seekg(blockId * BLOCK_SIZE);
-    rwCursor.write(dataToWrite, 2);
+    rwCursor.seekg(effectiveAddr);
+    rwCursor.write(dataToWrite, writeLen);
 
     DebugCout("此次写入的数据为");
     std::cout << "Disk::" << dataToWrite << std::endl;
@@ -179,11 +186,8 @@ std::vector<int> Disk::AllocFileBlock() {
     auto dataBlocksId = this->GetFreeBlocks(8);
     // 将8个数据块的块号写入索引块中
     for (size_t ii = 0; ii < dataBlocksId.size(); ii++) {
-        char* newBlockData = new char[40];
-        char* oldBlockData = this->ReadSingleBlockFromDisk(newIdxBlocksId.back());
-        strcat(newBlockData, oldBlockData); // 将第二个字符串追加到结果缓冲区的末尾
-        strcat(result, oldBlockData); // 将第二个字符串追加到结果缓冲区的末尾
-        this->WriteSingleBlockToDisk(newIdxBlocksId.back(), std::to_string(dataBlocksId[ii]).c_str());
+        int effectiveAddr = newIdxBlocksId.back() * BLOCK_SIZE + IDX_SIZE * ii;
+        this->WriteSingleBlockToDisk(effectiveAddr, IDX_SIZE, std::to_string(dataBlocksId[ii]).c_str());
     }
     // 返回索引块号
     return newIdxBlocksId;
