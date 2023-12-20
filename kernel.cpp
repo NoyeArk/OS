@@ -107,7 +107,11 @@ void Kernel::Write(const std::string& fileName) {
 		if (targetFcbPoint->len * BLOCK_SIZE < sizeInBytes) {  // 文件过小，需要从磁盘申请空间
 			// 算出需要申请的磁盘块数
 			size_t applyBlockNum = (targetFcbPoint->len * BLOCK_SIZE - sizeInBytes) / 40 + 1;
-			std::vector<int> newIdxBlocksId = disk.AllocDisk(targetFcbPoint->idxBlocksId.back(), targetFcbPoint->len, applyBlockNum);
+			std::vector<short> newIdxBlocksId = disk.AllocDisk(targetFcbPoint->idxBlocksId.back(), targetFcbPoint->len, applyBlockNum);
+			if (newIdxBlocksId.empty()) {
+				std::cout << "写入失败！" << std::endl;
+				return;
+			}
 			// 更新该文件对应的FCB中索引块
 			targetFcbPoint->ExpandFileLen(newIdxBlocksId, applyBlockNum);
 		}

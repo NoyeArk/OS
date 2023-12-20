@@ -27,7 +27,7 @@ FCB::FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
 		this->name += ".data";
 }
 
-void FCB::ExpandFileLen(std::vector<int> newIdxBlocksId, int newApplyBlockNum) {
+void FCB::ExpandFileLen(std::vector<short> newIdxBlocksId, int newApplyBlockNum) {
 	this->len += newApplyBlockNum;
 	this->lastEditTime = std::chrono::system_clock::now();
 	this->idxBlocksId.insert(this->idxBlocksId.end(), newIdxBlocksId.begin(), newIdxBlocksId.end());
@@ -93,7 +93,7 @@ void Directory::cd(std::string fileName) {
 }
 
 
-void Directory::Create(const std::string& fileName, std::vector<int> idxBlocksId) {
+void Directory::Create(const std::string& fileName, std::vector<short> idxBlocksId) {
 	FCB* fcb = new FCB(fileName, curFile->path, DATA);
 	fcb->idxBlocksId = idxBlocksId;
 	curFile->childFiles.push_back(fcb);
@@ -148,8 +148,8 @@ void Directory::Back() {
  * \name rm  删除文件
  * \brief    删除文件对应的FCB
  */
-std::vector<int> Directory::Rm(const std::string& toRemoveFile) {
-	std::vector<int> idxBlocksId = {};
+std::vector<short> Directory::Rm(const std::string& toRemoveFile) {
+	std::vector<short> idxBlocksId = {};
 
 	for (size_t ii = 0; ii < curFile->childFiles.size(); ii++) {
 		FCB* fcb = curFile->childFiles[ii];
@@ -157,7 +157,7 @@ std::vector<int> Directory::Rm(const std::string& toRemoveFile) {
 			continue;
 		if (fcb->authorization == emDelDenied) {
 			OutMsg("当前文件在内存中，不允许删除！");
-			return std::vector<int>();
+			return std::vector<short>();
 		}
 		if (fcb->type == DIR) {  // 目录文件
 			// 无其他操作
@@ -171,7 +171,7 @@ std::vector<int> Directory::Rm(const std::string& toRemoveFile) {
 		return idxBlocksId;
 	}
 	OutMsg("要删除的文件不存在！");
-	return std::vector<int>();
+	return std::vector<short>();
 }
 
 

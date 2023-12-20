@@ -1,7 +1,13 @@
 #include "disk.h"
 
-std::vector<int> Disk::GetFreeBlocks(int applyBlockNum) {
-    std::vector<int> freeLoc;
+
+/**
+ * \name GetFreeBlocks       从磁盘文件区中申请applyBlockNum个空闲块
+ * \type std::vector<short>  申请得到的空闲文件块号集合
+ * \param applyBlockNum      申请的空闲块个数
+ */
+std::vector<short> Disk::GetFreeBlocks(int applyBlockNum) {
+    std::vector<short> freeLoc;
     std::lock_guard<std::mutex> lock(fileBitMapMutex);
     if (fileBitMap.none()) {
         std::cout << "无空闲块" << std::endl;
@@ -18,8 +24,14 @@ std::vector<int> Disk::GetFreeBlocks(int applyBlockNum) {
     return freeLoc;
 }
 
-std::vector<int> Disk::GetDataBlocksId(const std::vector<int>& idxBlocksNum) {
-    std::vector<int> dataBlocksId;
+
+/**
+ * \name GetDataBlocksId     得到索引块中索引对应的文件块号
+ * \type std::vector<short>  文件块号集合
+ * \param idxBlocksNum       索引块号链表
+ */
+std::vector<short> Disk::GetDataBlocksId(const std::vector<short>& idxBlocksNum) {
+    std::vector<short> dataBlocksId;
     for (const auto& idxBlock : idxBlocksNum) {
         char* binaryDataBlocksId = this->ReadSingleBlockFromDisk(idxBlock);
         // 把二进制字符串转换为int型
@@ -31,18 +43,39 @@ std::vector<int> Disk::GetDataBlocksId(const std::vector<int>& idxBlocksNum) {
         }
     }
     if (dataBlocksId.empty())
-        return std::vector<int>();
+        return std::vector<short>();
     return dataBlocksId;
 }
 
 
-char* Disk::ReadSingleBlockFromDisk(const int& addr) {
+/**
+ * \name UpdateIdxBlock   更新索引块中索引
+ * \param idxBlockId      要更新的索引块号
+ * \param beginOffset     要写入的起始块内地址 即块内偏移
+ * \param dataBlocksId    要写入的索引号
+ */
+void Disk::UpdateIdxBlock(int idxBlockId, int beginOffset, std::vector<short> dataBlocksId) {
+    for (size_t ii = 0; ii < dataBlocksId.size(); ii++) {
+        int blockIdToWrite = dataBlocksId[ii];
+        int offset = beginOffset + ii * IDX_SIZE;
+        int effectiveAddr = idxBlockId * BLOCK_SIZE + offset;
+        this->WriteSingleBlockToDisk(effectiveAddr, IDX_SIZE, std::to_string(blockIdToWrite).c_str());
+    }
+}
+
+
+/**
+ * \name ReadSingleBlockFromDisk  从磁盘中读出一个块的数据
+ * \type char *                   读出的数据
+ * \param blockIdToRead           要读的块号
+ */
+char* Disk::ReadSingleBlockFromDisk(const int& blockIdToRead) {
     if (!rwCursor.is_open()) {
         std::cerr << "Error opening file: " << std::endl;
         exit(-1);
     }
     // 设置读取位置
-    rwCursor.seekg(addr * BLOCK_SIZE);
+    rwCursor.seekg(blockIdToRead * BLOCK_SIZE);
 
     // 读取1 * 40b的内容
     char* buff = new char[1 * BLOCK_SIZE];
@@ -97,23 +130,45 @@ Disk::~Disk() {
 }
 
 
+/**
+ * \name WriteSwap           对换区进行写操作
+ * \param toWriteBlocksData  要写入的数据集合
+ */
 void Disk::WriteSwap(const std::vector<char*>& toWriteBlocksData) {
     int swapBlockId = 900;
     for (auto blockData : toWriteBlocksData) {
-        this->WriteSingleBlockToDisk(swapBlockId, blockData);
+        int effectiveAddr = swapBlockId * BLOCK_SIZE;
+        this->WriteSingleBlockToDisk(effectiveAddr, BLOCK_SIZE, blockData);
         ++swapBlockId;
         delete blockData;
     }
 }
 
 
-void Disk::ReadSwap() {
-
+/**
+ * \name ReadSwap            对换区进行读操作
+ * \type std::vector<char*>  返回读出的数据集合
+ * \param blockNum           要读的块个数
+ */
+std::vector<char*> Disk::ReadSwap(const int& blockNum) {
+    std::vector<char*> blockDatas;
+    for (size_t ii = 0; ii < blockNum; ii++) {
+        int blockIdToRead = 900 + ii;
+        char* data = this->ReadSingleBlockFromDisk(blockIdToRead);
+        if (data != nullptr)
+            blockDatas.push_back(data);
+        delete data;
+    }
+    return blockDatas;
 }
 
 
-std::vector<int> Disk::QueryFreeFileBlock() {
-    std::vector<int> freeLoc;
+/**
+ * \name QueryFreeFileBlock  查询当前磁盘文件区的空闲块号
+ * \return                   返回当前空闲块号集合
+ */
+std::vector<short> Disk::QueryFreeFileBlock() {
+    std::vector<short> freeLoc;
     std::lock_guard<std::mutex> lock(fileBitMapMutex);
 
     for (size_t blockId = 0; blockId < FILE_BLOCK_NUM; blockId++) {
@@ -125,6 +180,11 @@ std::vector<int> Disk::QueryFreeFileBlock() {
 }
 
 
+/**
+ * \name SetBitMap  对位示图进行写操作
+ * \param blockId   写入位示图中对应的块号
+ * \param data      要写入的信息 true-1 false-0
+ */
 void Disk::SetBitMap(int blockId, bool data) {
     std::lock_guard<std::mutex> lock(fileBitMapMutex);
 
@@ -133,60 +193,77 @@ void Disk::SetBitMap(int blockId, bool data) {
 }
 
 
-std::vector<int> Disk::AllocDisk(const int& lastIdxBlockNum, int curFileLen, int applyBlockNum) {
-    std::vector<int> newIdxBlocksId;
+/**
+ * \name AllocDisk         申请新的磁盘文件区空闲块
+ * \param lastIdxBlockNum  申请进程中对应的最后一个索引块号
+ * \param curFileLen       要存放的目标文件的长度
+ * \param applyBlockNum    申请的空闲块个数
+ * \return 
+ */
+std::vector<short> Disk::AllocDisk(const int& lastIdxBlockNum, int curFileLen, int applyBlockNum) {
+    std::vector<short> newIdxBlocksId;
     auto dataBlocksId = this->GetFreeBlocks(applyBlockNum);
-    // 如果新分配的磁盘块数大于最后一个索引块（最多10个）中剩余位置，需要再分配一个新的索引块
-    // 如何计算最后一个索引块中剩余位置：文件长度 % 10
-    int availablePosNum = curFileLen % 10;
+    if (dataBlocksId.empty()) {
+        std::cout << "磁盘盘块申请失败！" << std::endl;
+        return std::vector<short>();
+    }
+    // 如果新分配的磁盘块数大于最后一个索引块（最多20个）中剩余位置，需要再分配一个新的索引块
+    // 如何计算最后一个索引块中剩余位置：(20 - 文件长度 % 20)
+    int availablePosNum = IDX_BLOCK_IDX_NUM - curFileLen % IDX_BLOCK_IDX_NUM;
     if (applyBlockNum > availablePosNum) {
         // 需要再分配applyIdxBlockNum个块用于索引
-        int applyIdxBlockNum = (applyBlockNum - availablePosNum) / 10 + 1;
+        int applyIdxBlockNum = (applyBlockNum - availablePosNum) / IDX_BLOCK_IDX_NUM + 1;
         newIdxBlocksId = this->GetFreeBlocks(applyIdxBlockNum);
     }
     else {
-        // 不需要分配
+        // 不需要分配新的索引块
     }
     size_t curWriteIdx = 0;
     // 程序执行到这，索引块是够的，现在需要把新分配的数据块号写入索引块
-    if (availablePosNum >= applyBlockNum) {
+    if (availablePosNum >= applyBlockNum) {  // 最后一个索引块中足够此次分配数据块号写入
         // 在最后一个索引块中写入applyBlockNum个索引
-        for (size_t ii = 0; ii < applyBlockNum; ii++) {
-            this->WriteSingleBlockToDisk(lastIdxBlockNum, std::to_string(dataBlocksId[curWriteIdx]).c_str());
-            ++curWriteIdx;
-        }
+        int beginOffset = (curFileLen % IDX_BLOCK_IDX_NUM) * IDX_SIZE;
+        this->UpdateIdxBlock(lastIdxBlockNum, beginOffset, dataBlocksId);
     }
     else {
-        // 最后一个不够，先在最后一个写入availablePosNum个索引
-        for (size_t ii = 0; ii < availablePosNum; ii++) {
-            this->WriteSingleBlockToDisk(lastIdxBlockNum, std::to_string(dataBlocksId[curWriteIdx]).c_str());
-            ++curWriteIdx;
-        }
-        // 在新的索引块中写入其他的索引
-        int remainIdxToWriteNum = dataBlocksId.size() - curWriteIdx;
-        for (auto idxBlockId : newIdxBlocksId) {
-            // 每个块写10个数据
-            for (size_t ii = 0; ii < 10; ii++) {
-                this->WriteSingleBlockToDisk(idxBlockId, std::to_string(dataBlocksId[curWriteIdx]).c_str());
-                ++curWriteIdx;
-                if (curWriteIdx == dataBlocksId.size()) {
-                    // 写入结束
-                    return newIdxBlocksId;
-                }
+        // 最后一个索引块容量不够，先在最后一个索引块中写入剩余availablePosNum个索引
+        std::vector<short> subDataBlocksId(dataBlocksId.begin(), dataBlocksId.begin() + availablePosNum);
+        int beginOffset = (curFileLen % IDX_BLOCK_IDX_NUM) * IDX_SIZE;
+        this->UpdateIdxBlock(lastIdxBlockNum, beginOffset, subDataBlocksId);
+
+        // 在新的索引块中写入剩余的索引
+        std::vector<short> remainDataBlocksId(dataBlocksId.begin() + availablePosNum, dataBlocksId.end());
+        for (size_t ii = 0; ii < newIdxBlocksId.size(); ii++) {
+            std::vector<short> subDataBlocksId = {};
+            if (remainDataBlocksId.size() <= IDX_BLOCK_IDX_NUM) {  // 不够一次写满索引块，不需要截取
+                subDataBlocksId.insert(subDataBlocksId.begin(), remainDataBlocksId.begin(), dataBlocksId.end());
             }
+            else {  // 截取前20个索引作为此次要写入的索引，同时更新剩余待写入的索引
+                subDataBlocksId.insert(subDataBlocksId.begin(), remainDataBlocksId.begin(), dataBlocksId.begin() + IDX_BLOCK_IDX_NUM);
+                remainDataBlocksId.erase(remainDataBlocksId.begin(), remainDataBlocksId.begin() + IDX_BLOCK_IDX_NUM);
+            }
+
+            int idxBlockId = newIdxBlocksId[ii];
+            int beginOffset = ii * IDX_SIZE;  // 从块内0地址开始
+            this->UpdateIdxBlock(idxBlockId, beginOffset, subDataBlocksId);
         }
     }
-    return std::vector<int>();
+    return newIdxBlocksId;
 }
 
 
-std::vector<int> Disk::AllocFileBlock() {
+/**
+ * \name AllocFileBlock   创建进程时为其分配8个文件块和1个索引块
+ * \return                返回为其分配的索引块号
+ */
+std::vector<short> Disk::AllocFileBlock() {
     // 分配一个索引块和8个数据块
     auto newIdxBlocksId = this->GetFreeBlocks(1);
     auto dataBlocksId = this->GetFreeBlocks(8);
     // 将8个数据块的块号写入索引块中
     for (size_t ii = 0; ii < dataBlocksId.size(); ii++) {
-        int effectiveAddr = newIdxBlocksId.back() * BLOCK_SIZE + IDX_SIZE * ii;
+        int offset = +IDX_SIZE * ii;
+        int effectiveAddr = newIdxBlocksId.back() * BLOCK_SIZE + offset;
         this->WriteSingleBlockToDisk(effectiveAddr, IDX_SIZE, std::to_string(dataBlocksId[ii]).c_str());
     }
     // 返回索引块号
@@ -194,14 +271,23 @@ std::vector<int> Disk::AllocFileBlock() {
 }
 
 
-void Disk::FreeDisk(const std::vector<int>& toFreeIdxBlocksId) {
+/**
+ * \name FreeDisk            删除文件时释放其所占有的文件块和索引块
+ * \param toFreeIdxBlocksId  要清除的文件所在索引块号
+ */
+void Disk::FreeDisk(const std::vector<short>& toFreeIdxBlocksId) {
     std::lock_guard<std::mutex> lock(fileBitMapMutex);
     auto dataBlocksId = this->GetDataBlocksId(toFreeIdxBlocksId);
+    // 清空文件块数据
     for (const auto& blockId : dataBlocksId) {
-        // 更新位示图
         fileBitMap.reset(blockId);
-        // 对应块内容置0
-        this->WriteSingleBlockToDisk(blockId, "");
+        int effectiveAddr = blockId * BLOCK_SIZE;
+        this->WriteSingleBlockToDisk(effectiveAddr, BLOCK_SIZE, "");
+    }
+    // 清空索引块数据
+    for (auto blockId : toFreeIdxBlocksId) {
+        fileBitMap.reset(blockId);
+        this->WriteSingleBlockToDisk(blockId * BLOCK_SIZE, BLOCK_SIZE, "");
     }
 }
 
@@ -210,9 +296,9 @@ void Disk::FreeDisk(const std::vector<int>& toFreeIdxBlocksId) {
 * \param addr：    要读的起始块
 * \param blockNum：要读的块个数
 */
-std::vector<char*> Disk::ReadFile(const std::vector<int>& idxBlocksNum, const int& blockNum) {
+std::vector<char*> Disk::ReadFile(const std::vector<short>& idxBlocksNum, const int& blockNum) {
     std::vector<char*> blockDatas;
-    std::vector<int> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
+    std::vector<short> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
     // 校验
     if (blockNum != dataBlocksId.size()) {
         std::cout << "目录中文件块个数与索引块中文件个数不匹配！" << std::endl;
@@ -228,8 +314,13 @@ std::vector<char*> Disk::ReadFile(const std::vector<int>& idxBlocksNum, const in
 }
 
 
-void Disk::WriteFile(const std::vector<int>& idxBlocksNum, const std::string& dataToWrite) {
-    std::vector<int> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
+/**
+ * \name WriteFile      写磁盘文件区
+ * \param idxBlocksNum  要写入文件块所在的索引块号
+ * \param dataToWrite   要写入的数据
+ */
+void Disk::WriteFile(const std::vector<short>& idxBlocksNum, const std::string& dataToWrite) {
+    std::vector<short> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
     std::vector<std::string> blocksData;
 
     int dataSize = dataToWrite.size();
@@ -243,13 +334,14 @@ void Disk::WriteFile(const std::vector<int>& idxBlocksNum, const std::string& da
         start += length; // 更新下一个片段的起始位置
     }
     for (size_t ii = 0; ii < blocksData.size(); ii++) {
-        this->WriteSingleBlockToDisk(dataBlocksId[ii], blocksData[ii].c_str());
+        int effectiveAddr = dataBlocksId[ii] * BLOCK_SIZE;
+        this->WriteSingleBlockToDisk(effectiveAddr, BLOCK_SIZE, blocksData[ii].c_str());
     }
 }
 
 
 void Disk::CreateDisk() {
-    int diskSize = 40 * BLOCK_NUM;  // 1 KB = 1024 bytes
+    int diskSize = BLOCK_NUM * BLOCK_SIZE;
 
     if (rwCursor.is_open()) {
         // 将文件指针移动到指定大小

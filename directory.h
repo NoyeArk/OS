@@ -46,13 +46,13 @@ struct FCB {
 	std::string path;			       // 文件路径
 	int authorization;				   // 1:可写  0:可读
 	std::vector<FCB*> childFiles;      // 链接子文件
-	std::vector<int> idxBlocksId;	   // 索引块号
+	std::vector<short> idxBlocksId;	   // 索引块号
 	std::chrono::system_clock::time_point createTime;    // 创建时间
 	std::chrono::system_clock::time_point lastEditTime;  // 最后修改时间
 
 	FCB();
 	FCB(const std::string name, const std::string parentPath, FILE_TYPE type);
-	void ExpandFileLen(std::vector<int> newIdxBlocksId, int newApplyBlockNum);
+	void ExpandFileLen(std::vector<short> newIdxBlocksId, int newApplyBlockNum);
 
 };
 
@@ -87,13 +87,13 @@ public:
 	void rmdir();
 	void Ls();
 	void cd(std::string fileName);
-	void Create(const std::string& fileName, std::vector<int> idxBlocksId);
+	void Create(const std::string& fileName, std::vector<short> idxBlocksId);
 	// 返回目标文件的FCB
 	FCB* OpenFile(const std::string& fileName);
 	void CloseFile(const std::string& fileName);
 	FCB* WriteFile(const std::string& fileName);
 	void ReadFile();
-	std::vector<int> Rm(const std::string& toRemoveFile);
+	std::vector<short> Rm(const std::string& toRemoveFile);
 	void Back();
 
 	std::string getCurPath();
