@@ -21,6 +21,10 @@
 #include <vector>
 #include <sstream>
 
+#include <cstring>
+#include <fcntl.h>
+#include <cerrno>
+
 #define BLOCK_NUM         1024 // 1024块：0~1023
 #define FILE_BLOCK_NUM    900  // 900块： 0~899
 #define SWAP_BLOCK_NUM    124  // 124块： 900~1023
@@ -28,7 +32,7 @@
 #define IDX_SIZE          2    // 索引块中索引大小：2B
 #define IDX_BLOCK_IDX_NUM 20   // 索引块中存放索引个数：20
 
-#define Debug 1
+#define Debug 0
 
 class Disk
 {
@@ -47,6 +51,8 @@ private:
 	char* ReadSingleBlockFromDisk(const int& blockIdToRead);
 	void WriteSingleBlockToDisk(const int& effectiveAddr, const int& writeLen, const char* dataToWrite);
 
+	void FlushBuffer();
+	
 	// Debug
 	void DebugCout(std::string info);
 

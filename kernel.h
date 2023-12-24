@@ -20,7 +20,7 @@
 #include "my_thread.h"
 
 #define InitProcessBlockNum 8
-#define BLOCK_SIZE     320   // 块大小：40B
+#define BLOCK_SIZE     40   // 块大小：40B
 
 enum COMMAND
 {
@@ -39,16 +39,17 @@ private:
 	Memory memorysystem;  // 内存管理系统
 	Directory directory;  // 文件管理系统
 	std::vector<FCB*> sysOpenFiles;  // 系统打开文件表
+	ProcessCommucation Message;
 
 private:
 	std::unique_ptr<PCB> Fork();                    // 创建进程
-	void Exit(const std::unique_ptr<PCB>& process);	// 释放进程
-	void Open(const std::string& fileName);         // 打开文件
-	void Read(const std::string& fileName);         // 读出文件
-	void Write(const std::string& fileName);        // 写入文件
-	void Close(const std::string& fileName);        // 关闭文件
-	void Delete(const std::string& fileName);       // 删除文件
-	void Create(const std::string& fileName);       // 打开文件
+	bool Exit(const std::unique_ptr<PCB>& process);	// 释放进程
+	bool Open(const std::string& fileName);         // 打开文件
+	bool Read(const std::string& fileName);         // 读出文件
+	bool Write(const std::string& fileName);        // 写入文件
+	bool Close(const std::string& fileName);        // 关闭文件
+	bool Delete(const std::string& fileName);       // 删除文件
+	bool Create(const std::string& fileName);       // 打开文件
 
 	std::vector<int> PageReplaceInterrupt(int pid, int pageNumToReplace);
 	
@@ -56,7 +57,7 @@ public:
 	Kernel();
 
 	std::string getCurPath();
-	void SysCall(COMMAND command, const std::string eax);
+	bool SysCall(COMMAND command, const std::string eax);
 };
 
 #endif

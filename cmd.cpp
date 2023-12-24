@@ -42,6 +42,34 @@ void Cmd::AnalysisCommand() {
 }
 
 
+void Cmd::Feedback() {
+	switch (command)
+	{
+	case CMD_CLS:  break;
+	case CMD_HELP: break;
+	case CMD_EXIT: break;
+	case CMD_NULL:break;
+	case FILE_FORMAT:break;
+	case FILE_MKDIR:break;
+	case FILE_RMDIR:break;
+	case FILE_LS:break;
+	case FILE_CD: break;
+	case FILE_CREATE:break;
+	case FILE_BACK:  break;
+	case FILE_CLOSE: break;
+	case FILE_WRITE: {
+		if (isCommandSucess) 
+			std::cout << "文件写入成功!" << std::endl;
+		break;
+	}
+	case FILE_READ:
+	case FILE_RM:
+	default:
+		break;
+	}
+}
+
+
 void Cmd::ExecuteCommand() {
 	switch (command)
 	{
@@ -50,7 +78,7 @@ void Cmd::ExecuteCommand() {
 	case CMD_EXIT: Exit();  break;
 	case CMD_NULL: break;
 	default:
-		kernel.SysCall(command, userInput);
+		isCommandSucess = kernel.SysCall(command, userInput);
 		break;
 	}
 }
@@ -89,5 +117,6 @@ void Cmd::Run() {
 		GetUserInput();
 		AnalysisCommand();
 		ExecuteCommand();
+		Feedback();
 	}
 }

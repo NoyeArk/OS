@@ -11,17 +11,17 @@
  * \file   directory.h
  * \brief  目录管理
  *	 format：对文件存储器进行格式化，即按照文件系统对结构对虚拟磁盘空间进行布局，并在其上创建根目录以及用于管理文件存储空间等的数据结构。
- *	 mkdir：用于创建子目录；
- *	 rmdir：用于删除目录；
- *	 ls：用于显示目录；
- *	 cd：用于更改当前目录；
+ *	 mkdir： 用于创建子目录；
+ *	 rmdir： 用于删除目录；
+ *	 ls：    用于显示目录；
+ *	 cd：    用于更改当前目录；
  *	 create：用于创建文件；
- *	 open：用于打开文件；
- *	 close：用于关闭文件；
- *	 write：用于写文件；
- *	 read：用于读文件
- *	 rm：用于删除文件。
- *	 back: 返回上一级目录
+ *	 open：  用于打开文件；
+ *	 close： 用于关闭文件；
+ *	 write： 用于写文件；
+ *	 read：  用于读文件
+ *	 rm：    用于删除文件。
+ *	 back:   返回上一级目录
  * \author horiki
  * \date   December 2023
  *********************************************************************/
@@ -53,7 +53,7 @@ struct FCB {
 	FCB();
 	FCB(const std::string name, const std::string parentPath, FILE_TYPE type);
 	void ExpandFileLen(std::vector<short> newIdxBlocksId, int newApplyBlockNum);
-
+	void AddIdxBlockId(const short& idxBlockId);
 };
 
 

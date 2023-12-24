@@ -21,6 +21,7 @@ class Cmd
 {
 private:
 	bool isExit;
+	bool isCommandSucess;
 	Kernel kernel;
 	COMMAND command;		// µ±«∞÷∏¡Ó
 	std::string userInput;  
@@ -29,6 +30,8 @@ private:
 	inline void Exit();
 	void ExecuteCommand();
 	void AnalysisCommand();
+	void Feedback();
+
 	inline void GetUserInput();
 
 	void Help();

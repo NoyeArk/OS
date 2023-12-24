@@ -1,6 +1,25 @@
 #include "disk.h"
 
 
+Disk::Disk() {
+    std::string diskPath = R"(F:\\code\\os\\disk.data)";
+    rwCursor.open(diskPath, std::ios::in | std::ios::out | std::ios::binary);
+    //CreateDisk();
+
+    // 将位示图所有位均置1
+    fileBitMap.set();
+    swapBitMap.set();
+
+    //ReadSingleBlockFromDisk(0);
+}
+
+
+Disk::~Disk() {
+    // 关闭文件
+    rwCursor.close();
+}
+
+
 /**
  * \name GetFreeBlocks       从磁盘文件区中申请applyBlockNum个空闲块
  * \type std::vector<short>  申请得到的空闲文件块号集合
@@ -34,13 +53,29 @@ std::vector<short> Disk::GetDataBlocksId(const std::vector<short>& idxBlocksNum)
     std::vector<short> dataBlocksId;
     for (const auto& idxBlock : idxBlocksNum) {
         char* binaryDataBlocksId = this->ReadSingleBlockFromDisk(idxBlock);
-        // 把二进制字符串转换为int型
-        std::stringstream ss(binaryDataBlocksId);
+        short* byteInAscii = new short[BLOCK_SIZE];
+        int blockId = -1;
 
-        int num;
-        while (ss >> num) {
-            dataBlocksId.push_back(num);
+        for (int ii = 0; ii < BLOCK_SIZE; ++ii) {
+            byteInAscii[ii] = static_cast<short>(binaryDataBlocksId[ii]);
+            byteInAscii[ii] -= 48;
+            if (ii % 2 == 1) {  // 奇数位置
+                if (byteInAscii[ii - 1] < 0 && byteInAscii[ii] < 0) {  // 无效数字
+                    // 跳过
+                    blockId = byteInAscii[ii - 1];
+                }
+                else if (byteInAscii[ii - 1] > 0 && byteInAscii[ii] < 0) {  // 个位数
+                    blockId = byteInAscii[ii - 1];
+                }
+                else if (byteInAscii[ii - 1] > 0 && byteInAscii[ii] > 0) {  // 个位数
+                    blockId = byteInAscii[ii - 1] * 10 + byteInAscii[ii];
+                }
+                if (blockId >= 0)
+                    dataBlocksId.push_back(blockId);
+            }
         }
+        delete binaryDataBlocksId;
+        delete[] byteInAscii;
     }
     if (dataBlocksId.empty())
         return std::vector<short>();
@@ -61,6 +96,7 @@ void Disk::UpdateIdxBlock(int idxBlockId, int beginOffset, std::vector<short> da
         int effectiveAddr = idxBlockId * BLOCK_SIZE + offset;
         this->WriteSingleBlockToDisk(effectiveAddr, IDX_SIZE, std::to_string(blockIdToWrite).c_str());
     }
+    this->FlushBuffer();
 }
 
 
@@ -74,16 +110,13 @@ char* Disk::ReadSingleBlockFromDisk(const int& blockIdToRead) {
         std::cerr << "Error opening file: " << std::endl;
         exit(-1);
     }
-    // 设置读取位置
     rwCursor.seekg(blockIdToRead * BLOCK_SIZE);
 
-    // 读取1 * 40b的内容
-    char* buff = new char[1 * BLOCK_SIZE];
-    rwCursor.read(buff, 1 * BLOCK_SIZE);
+    char* buff = new char[BLOCK_SIZE];
+    rwCursor.read(buff, BLOCK_SIZE);
 
     //std::cout << "Read " << rwCursor.gcount() << " bytes from the file." << std::endl;
     //std::cout.write(buff, rwCursor.gcount()) << std::endl;
-
     return buff;
 }
 
@@ -91,7 +124,7 @@ char* Disk::ReadSingleBlockFromDisk(const int& blockIdToRead) {
 /**
  * \name WriteSingleBlockToDisk  对磁盘中一个块的内容进行改写
  * \param effectiveAddr          要写入的有效地址
- * \param writeLen               要写入的数据大小，以字节为单位
+ * \param writeLen               要写入的数据长度，以字节为单位
  * \param dataToWrite            要写入的数据
  * \brief                        细致到对该块的第几个字节开始写入,offset以字节为单位
  */
@@ -104,29 +137,18 @@ void Disk::WriteSingleBlockToDisk(const int& effectiveAddr, const int& writeLen,
     rwCursor.write(dataToWrite, writeLen);
 
     DebugCout("此次写入的数据为");
-    std::cout << "Disk::" << dataToWrite << std::endl;
+}
+
+
+
+void Disk::FlushBuffer() {
+    this->WriteSingleBlockToDisk(0, 0, "");
 }
 
 
 void Disk::DebugCout(std::string info) {
     if (!Debug) return;
     std::cout << "Disk::" << info << std::endl;
-}
-
-
-Disk::Disk() {
-    std::string diskPath = R"(F:\\code\\os\\disk.data)";
-    rwCursor.open(diskPath, std::ios::in | std::ios::out | std::ios::binary);
-
-    // 将位示图所有位均置1
-    fileBitMap.set();
-    swapBitMap.set();
-}
-
-
-Disk::~Disk() {
-    // 关闭文件
-    rwCursor.close();
 }
 
 
@@ -142,6 +164,7 @@ void Disk::WriteSwap(const std::vector<char*>& toWriteBlocksData) {
         ++swapBlockId;
         delete blockData;
     }
+    this->FlushBuffer();
 }
 
 
@@ -262,10 +285,11 @@ std::vector<short> Disk::AllocFileBlock() {
     auto dataBlocksId = this->GetFreeBlocks(8);
     // 将8个数据块的块号写入索引块中
     for (size_t ii = 0; ii < dataBlocksId.size(); ii++) {
-        int offset = +IDX_SIZE * ii;
+        int offset = IDX_SIZE * ii;
         int effectiveAddr = newIdxBlocksId.back() * BLOCK_SIZE + offset;
         this->WriteSingleBlockToDisk(effectiveAddr, IDX_SIZE, std::to_string(dataBlocksId[ii]).c_str());
     }
+    this->FlushBuffer();
     // 返回索引块号
     return newIdxBlocksId;
 }
@@ -289,6 +313,7 @@ void Disk::FreeDisk(const std::vector<short>& toFreeIdxBlocksId) {
         fileBitMap.reset(blockId);
         this->WriteSingleBlockToDisk(blockId * BLOCK_SIZE, BLOCK_SIZE, "");
     }
+    this->FlushBuffer();
 }
 
 
@@ -298,18 +323,7 @@ void Disk::FreeDisk(const std::vector<short>& toFreeIdxBlocksId) {
 */
 std::vector<char*> Disk::ReadFile(const std::vector<short>& idxBlocksNum, const int& blockNum) {
     std::vector<char*> blockDatas;
-    std::vector<short> dataBlocksId = this->GetDataBlocksId(idxBlocksNum);
-    // 校验
-    if (blockNum != dataBlocksId.size()) {
-        std::cout << "目录中文件块个数与索引块中文件个数不匹配！" << std::endl;
-        return std::vector<char*>();
-    }
-    for (auto blockId : dataBlocksId) {
-        char* data = this->ReadSingleBlockFromDisk(blockId);
-        if (data != nullptr)
-            blockDatas.push_back(data);
-        delete data;
-    }
+    
     return blockDatas;
 }
 
@@ -337,6 +351,7 @@ void Disk::WriteFile(const std::vector<short>& idxBlocksNum, const std::string& 
         int effectiveAddr = dataBlocksId[ii] * BLOCK_SIZE;
         this->WriteSingleBlockToDisk(effectiveAddr, BLOCK_SIZE, blocksData[ii].c_str());
     }
+    this->FlushBuffer();
 }
 
 
@@ -349,7 +364,7 @@ void Disk::CreateDisk() {
 
         // 写入一个字节，以确保文件占据指定大小
         rwCursor.write("", 1);
-        std::cout << "磁盘创建成功：" << std::endl;
+        std::cout << "磁盘创建成功！" << std::endl;
     }
     else {
         std::cerr << "无法打开磁盘：" <<  std::endl;

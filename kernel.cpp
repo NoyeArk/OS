@@ -2,8 +2,8 @@
 
 Kernel::Kernel() {
 	// 根据目录来初始化磁盘位视图
-	//for (const auto& file : )
 	this->Create("test");
+	this->Create("a");
 }
 
 
@@ -32,23 +32,25 @@ std::unique_ptr<PCB> Kernel::Fork() {
 }
 
 
-void Kernel::Exit(const std::unique_ptr<PCB>& pcb) {
+bool Kernel::Exit(const std::unique_ptr<PCB>& pcb) {
 	// 释放进程中的内存空间
 	std::vector<int> pcbBlocksId;
 	std::transform(pcb->pageTable.begin(), pcb->pageTable.end(), std::back_inserter(pcbBlocksId),
 		[](const std::pair<int, int>& pair) { return pair.second; });
 	memorysystem.Free(pcb->pid, pcbBlocksId);
+	return true;
 }
 
 
-void Kernel::Open(const std::string& fileName) {
+bool Kernel::Open(const std::string& fileName) {
 	// 对应进程获得相应文件的权限
 	auto targetFcbPoint = directory.OpenFile(fileName);
 	sysOpenFiles.push_back(targetFcbPoint);
+	return true;
 }
 
 
-void Kernel::Read(const std::string& fileName) {
+bool Kernel::Read(const std::string& fileName) {
 	FCB* targetFcbPoint = nullptr;
 	for (auto fcb : sysOpenFiles) {
 		if (fcb->name == fileName) {
@@ -58,42 +60,56 @@ void Kernel::Read(const std::string& fileName) {
 	}
 	if (targetFcbPoint == nullptr) {
 		std::cout << "·需先打开该文件！" << std::endl;
-		return;
+		return false;
 	}
 	std::unique_ptr<PCB> pcb = Fork();  // 创建进程
 	if (!pcb) {  // 进程创建失败
 		std::cout << "打开文件" << fileName << "失败" << std::endl;
+		return false;
 	}
-	else {
-		if (targetFcbPoint->len > pcb->pageTable.size()) {
-			// 8块内存不够，继续申请
-			int requestBlockNum = targetFcbPoint->len - pcb->pageTable.size();
-			std::vector<int> allocMem = memorysystem.Alloc(pcb->pid, requestBlockNum);
-			if (requestBlockNum > allocMem.size()) {
-				// 需要进行页置换：LRU
-				size_t pageNumToReplace = requestBlockNum - allocMem.size();
-				auto replaceAllocMem = this->PageReplaceInterrupt(pcb->pid, pageNumToReplace);
-				allocMem.insert(allocMem.end(), replaceAllocMem.begin(), replaceAllocMem.end());
-			}
-			pcb->AppendMmu(allocMem);
+	if (targetFcbPoint->len > pcb->pageTable.size()) {
+		// 8块内存不够，继续申请
+		int requestBlockNum = targetFcbPoint->len - pcb->pageTable.size();
+		std::vector<int> allocMem = memorysystem.Alloc(pcb->pid, requestBlockNum);
+		if (requestBlockNum > allocMem.size()) {
+			// 需要进行页置换：LRU
+			size_t pageNumToReplace = requestBlockNum - allocMem.size();
+			auto replaceAllocMem = this->PageReplaceInterrupt(pcb->pid, pageNumToReplace);
+			allocMem.insert(allocMem.end(), replaceAllocMem.begin(), replaceAllocMem.end());
 		}
-		// 将文件数据从外存读入内存
-		auto blockDatas = disk.ReadFile(targetFcbPoint->idxBlocksId, targetFcbPoint->len);
-		// 分配给该进程的内存块可能并不连续，所以要一块一块复制
-		for (size_t ii = 0; ii < targetFcbPoint->len; ii++) {
-			// offset是相对于mem的偏移量
-			int toWriteBlockId = pcb->pageTable[ii].second;
-			char* blockData = new char[BLOCK_SIZE];
-			std::memcpy(blockData, blockDatas[ii], BLOCK_SIZE);
-			memorysystem.WriteMem(toWriteBlockId, blockData);
-			delete[] blockData;
+		pcb->AppendMmu(allocMem);
+	}
+
+	// 将文件数据从外存读出
+	std::string dataReadFromDisk;
+	Message.Send("DISK", "Read", targetFcbPoint->idxBlocksId);
+	Message.Receive(dataReadFromDisk);
+
+	if (dataReadFromDisk == "Error") {
+		return false;
+	}
+
+	// 将文件数据写入内存
+	for (size_t ii = 0; ii < targetFcbPoint->len; ii++) {
+		std::string msgReceiveFromMem;
+		short toWriteMemBlockId = pcb->pageTable[ii].second;
+		std::vector<short> memBlockIdToWrite = { toWriteMemBlockId };
+		std::string blockDataToWrite = dataReadFromDisk.substr(ii * BLOCK_SIZE, BLOCK_SIZE);
+		
+		Message.Send("MEMORY", "Write", memBlockIdToWrite, blockDataToWrite);
+		Message.Receive(msgReceiveFromMem);
+
+		if (msgReceiveFromMem == "Error") {
+			return false;
 		}
 	}
+
 	this->Exit(pcb);  // 退出进程
+	return true;
 }
 
 
-void Kernel::Write(const std::string& fileName) {
+bool Kernel::Write(const std::string& fileName) {
 	std::unique_ptr<PCB> pcbPoint = Fork();  // 创建进程
 	std::string dataToWrite;                 // 要写入的数据
 	if (!pcbPoint) {  // 进程创建失败
@@ -110,38 +126,48 @@ void Kernel::Write(const std::string& fileName) {
 			std::vector<short> newIdxBlocksId = disk.AllocDisk(targetFcbPoint->idxBlocksId.back(), targetFcbPoint->len, applyBlockNum);
 			if (newIdxBlocksId.empty()) {
 				std::cout << "写入失败！" << std::endl;
-				return;
+				return false;
 			}
 			// 更新该文件对应的FCB中索引块
 			targetFcbPoint->ExpandFileLen(newIdxBlocksId, applyBlockNum);
 		}
-		disk.WriteFile(targetFcbPoint->idxBlocksId, dataToWrite);
+		std::string msgReceiveFromDisk;
+		Message.Send("DISK", "Write", targetFcbPoint->idxBlocksId, dataToWrite);
+		Message.Receive(msgReceiveFromDisk);
+
+		if (msgReceiveFromDisk == "Error") {
+			return false;
+		}
 	}
 	this->Exit(pcbPoint);  // 退出进程
+	return true;
 }
 
 
-void Kernel::Close(const std::string& fileName) {
+bool Kernel::Close(const std::string& fileName) {
 	for (size_t ii = 0; ii < sysOpenFiles.size(); ii++) {
 		if (sysOpenFiles[ii]->name == fileName) {
 			sysOpenFiles.erase(sysOpenFiles.begin() + ii);
-			return;
+			return true;
 		}
 	}
 	std::cout << "·未打开该文件！" << std::endl;
+	return false;
 }
 
 
-void Kernel::Delete(const std::string& fileName) {
+bool Kernel::Delete(const std::string& fileName) {
 	auto toRemoveFileIdxBlocksId = directory.Rm(fileName);
 	if (!toRemoveFileIdxBlocksId.empty())
 		disk.FreeDisk(toRemoveFileIdxBlocksId);
+	return true;
 }
 
 
-void Kernel::Create(const std::string& fileName) {
+bool Kernel::Create(const std::string& fileName) {
 	auto idxBlocksId = disk.AllocFileBlock();
 	directory.Create(fileName, idxBlocksId);
+	return true;
 }
 
 
@@ -167,7 +193,8 @@ std::string Kernel::getCurPath() {
 
 
 // 这里使用command来代替中断类型号，应该宏定义几个中断类型
-void Kernel::SysCall(COMMAND command, const std::string eax) {
+bool Kernel::SysCall(COMMAND command, const std::string eax) {
+	bool isCommandSuccess = false;
 	std::string targetFile = eax.substr(eax.find(" ") + 1);
 	switch (command)
 	{
@@ -182,20 +209,28 @@ void Kernel::SysCall(COMMAND command, const std::string eax) {
 	case FILE_CD: 
 		directory.cd(targetFile); break;
 	case FILE_CREATE:
-		this->Create(targetFile); break;
+		isCommandSuccess = this->Create(targetFile); 
+		break;
 	case FILE_BACK:
-		directory.Back();         break;
+		directory.Back();         
+		break;
 	case FILE_OPEN:
-		this->Open(targetFile);   break;
+		isCommandSuccess = this->Open(targetFile);   
+		break;
 	case FILE_CLOSE:
-		this->Close(targetFile);  break;
+		isCommandSuccess = this->Close(targetFile);  
+		break;
 	case FILE_WRITE:
-		this->Write(targetFile);  break;
+		isCommandSuccess = this->Write(targetFile);  
+		break;
 	case FILE_READ:
-		this->Read(targetFile);   break;
+		isCommandSuccess = this->Read(targetFile);   
+		break;
 	case FILE_RM:
-		this->Delete(targetFile); break;
+		isCommandSuccess = this->Delete(targetFile); 
+		break;
 	default:
 		break;
 	}
+	return isCommandSuccess;
 }

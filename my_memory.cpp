@@ -5,6 +5,7 @@ MCB::MCB() {
 	this->lastUseTime = INFINITY;
 }
 
+
 MCB::MCB(int pid, std::chrono::system_clock::time_point lastUseTime) : pid(pid) {
 	// 将当前时间转换为整数
 	auto currentTimeInt = std::chrono::duration_cast<std::chrono::seconds>(lastUseTime.time_since_epoch()).count();

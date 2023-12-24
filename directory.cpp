@@ -33,6 +33,10 @@ void FCB::ExpandFileLen(std::vector<short> newIdxBlocksId, int newApplyBlockNum)
 	this->idxBlocksId.insert(this->idxBlocksId.end(), newIdxBlocksId.begin(), newIdxBlocksId.end());
 }
 
+void FCB::AddIdxBlockId(const short& idxBlockId) {
+	this->idxBlocksId.push_back(idxBlockId);
+}
+
 // -----------------------------构造函数-----------------------------------
 Directory::Directory() {
 	rootFile.name = "root";
@@ -95,6 +99,7 @@ void Directory::cd(std::string fileName) {
 
 void Directory::Create(const std::string& fileName, std::vector<short> idxBlocksId) {
 	FCB* fcb = new FCB(fileName, curFile->path, DATA);
+	fcb->len = 8;  // 默认初始为8
 	fcb->idxBlocksId = idxBlocksId;
 	curFile->childFiles.push_back(fcb);
 }

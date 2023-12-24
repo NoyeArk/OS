@@ -1,6 +1,8 @@
 ﻿#ifndef MY_THREAD_H
 #define MY_THREAD_H
 
+#define _CRT_SECURE_NO_WARNINGS
+
 /*********************************************************************
  * \file   my_thread.h
  * \brief  创建内核线程池
@@ -16,6 +18,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <utility>
+#include <tchar.h>
+#include <sstream>
+#include <windows.h>
 
 #include "directory.h"
 
@@ -29,6 +34,27 @@ struct PCB {
 	PCB();
 	// 添加新的内存块
 	void AppendMmu(std::vector<int> allocMem);
+};
+
+
+class ProcessCommucation
+{
+private:
+	HANDLE hFile;
+	HANDLE hMapHandle;
+	HANDLE hNotifyHandle;
+	char* memMapFileBufAddr;
+	std::vector<std::string> message;
+
+	void CreateFileMap();
+	char* MakeMessageToSend(const std::string& command, const std::vector<short>& blocksNum, const std::string& dataToWrite = "");
+	std::vector<std::string> AnalysisMessage(std::string rawMessage);
+
+public:
+	ProcessCommucation();
+
+	void Receive(std::string& data);
+	void Send(std::string type, const std::string& command, const std::vector<short>& blocksNum, const std::string& dataToWrite = "");
 };
 
 
