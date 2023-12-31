@@ -40,6 +40,7 @@ enum FILE_TYPE {
 struct FCB {
 
 	int len;				           // 文件长度-文件所占块数
+	int owner;                         // 文件所有者
 	FILE_TYPE type;				       // 文件类型
 	bool isModified;				   // 是否被修改
 	std::string name;		           // 文件名

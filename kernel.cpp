@@ -21,7 +21,7 @@ std::unique_ptr<PCB> Kernel::Fork() {
 		for (int ii = 0; ii < InitProcessBlockNum; ii++) {
 			// 虚页号 ：物理块号
 			int virtualPageNumber = ii;
-			p->pageTable.push_back(std::make_pair(virtualPageNumber, allocMem[ii]));
+			p->pageTable.push_back(PageTableItem(allocMem[ii]));
 		}
 	}
 	else {
@@ -92,7 +92,7 @@ bool Kernel::Read(const std::string& fileName) {
 	// 将文件数据写入内存
 	for (size_t ii = 0; ii < targetFcbPoint->len; ii++) {
 		std::string msgReceiveFromMem;
-		short toWriteMemBlockId = pcb->pageTable[ii].second;
+		short toWriteMemBlockId = pcb->pageTable[ii].memBlockId;
 		std::vector<short> memBlockIdToWrite = { toWriteMemBlockId };
 		std::string blockDataToWrite = dataReadFromDisk.substr(ii * BLOCK_SIZE, BLOCK_SIZE);
 		
@@ -103,8 +103,8 @@ bool Kernel::Read(const std::string& fileName) {
 			return false;
 		}
 	}
-
-	this->Exit(pcb);  // 退出进程
+	this->readyQueue.push_back(pcb);
+	//this->Exit(pcb);  // 退出进程
 	return true;
 }
 
@@ -157,6 +157,7 @@ bool Kernel::Close(const std::string& fileName) {
 
 
 bool Kernel::Delete(const std::string& fileName) {
+	// 得到要删除文件的外存索引块号
 	auto toRemoveFileIdxBlocksId = directory.Rm(fileName);
 	if (!toRemoveFileIdxBlocksId.empty())
 		disk.FreeDisk(toRemoveFileIdxBlocksId);
@@ -171,8 +172,8 @@ bool Kernel::Create(const std::string& fileName) {
 }
 
 
-std::vector<int> Kernel::PageReplaceInterrupt(int pid, int pageNumToReplace) {
-	std::vector<int> replaceBlocksId = memorysystem.PagesReplace(pid, pageNumToReplace);
+std::vector<int> Kernel::PageReplaceInterrupt(int pageNumToReplace) {
+	std::vector<int> replaceBlocksId = memorysystem.PagesReplace(this->readyQueue, pageNumToReplace);
 	// replaceBlocksId中的块对应内存的数据换到外存兑换区
 	std::vector<char*> blocksData;
 	// 将数据一块一块的读出

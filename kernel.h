@@ -32,13 +32,17 @@ enum COMMAND
 	CMD_CLS, CMD_HELP, CMD_EXIT, CMD_NULL
 };
 
+
 class Kernel
 {
 private:
+	PCB* curProcess;      // 当前获得CPU的进程
+
 	Disk disk;            // 磁盘管理系统
 	Memory memorysystem;  // 内存管理系统
 	Directory directory;  // 文件管理系统
 	std::vector<FCB*> sysOpenFiles;  // 系统打开文件表
+	std::vector<std::unique_ptr<PCB>> readyQueue;  // 进程就绪队列
 	ProcessCommucation Message;
 
 private:
@@ -51,7 +55,7 @@ private:
 	bool Delete(const std::string& fileName);       // 删除文件
 	bool Create(const std::string& fileName);       // 打开文件
 
-	std::vector<int> PageReplaceInterrupt(int pid, int pageNumToReplace);
+	std::vector<int> PageReplaceInterrupt(int pageNumToReplace);
 	
 public:
 	Kernel();

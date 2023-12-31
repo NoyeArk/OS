@@ -18,18 +18,38 @@ MCB::MCB(int pid, std::chrono::system_clock::time_point lastUseTime) : pid(pid) 
  * \type int 找到的内存块下标
  * \return 
  */
-int Memory::LRU(int pid) {
+int Memory::LRU(const std::vector<std::shared_ptr<PCB>>& pcbs) {
 	int currentTime = GetCurrentIntTime();
-	int maxTimeDifference = -1;
-	int lruBlockId;
-	for (size_t blockId = 0; blockId < MEM_BLOCK_NUM; blockId++) {
-		if (memAllocList[blockId].pid != pid && 
-			currentTime - memAllocList[blockId].lastUseTime > maxTimeDifference) {
-			maxTimeDifference = currentTime - memAllocList[blockId].lastUseTime;
-			lruBlockId = blockId;
+	int pid;                     // LRU置换的内存块号所属的进程
+	int LRUBlockId;              // LRU算法选中的内存块号
+	int maxTimeDifference = -1;  // 记录最大时间差
+
+	for (size_t ii = 0; ii < pcbs.size(); ii++) {
+		auto pcb = pcbs[ii];
+		// 遍历该进程的页表
+		for (auto item : pcb->pageTable) {
+			if (currentTime - item.lastUseTime > maxTimeDifference) {
+				pid = pcb->pid;
+				maxTimeDifference = currentTime - item.lastUseTime;
+				LRUBlockId = item.memBlockId;
+			}
 		}
 	}
-	return lruBlockId;
+
+	// 修改pid对应的进程的LRUBlockId的页表项为不在内存中
+	for (size_t ii = 0; ii < pcbs.size(); ii++) {
+		auto pcb = pcbs[ii];
+		if (pcb->pid != pid)
+			continue;
+		for (size_t jj = 0; jj < pcb->pageTable.size(); ii++) {
+			if (pcb->pageTable[jj].memBlockId == LRUBlockId) {
+				pcb->pageTable[jj].isInMem = false;
+				break;
+			}
+		}
+		break;
+	}
+	return LRUBlockId;
 }
 
 
@@ -41,10 +61,10 @@ int Memory::GetCurrentIntTime() {
 }
 
 
-std::vector<int> Memory::PagesReplace(int pid, int pageNumToReplace) {
+std::vector<int> Memory::PagesReplace(const std::vector<std::unique_ptr<PCB>>& pcbs, int pageNumToReplace) {
 	std::vector<int> replaceBlocksId;  // 需要被置换到外存的内存块号
 	for (size_t ii = 0; ii < pageNumToReplace; ii++) {
-		int lruBlockId = this->LRU(pid);
+		int lruBlockId = this->LRU(pcbs);
 		replaceBlocksId.push_back(lruBlockId);
 	}
 	return replaceBlocksId;

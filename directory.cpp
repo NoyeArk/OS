@@ -6,10 +6,12 @@ const int NOT_FIND = 99999;
 // ----------------------结构体FCB函数实现--------------------------
 FCB::FCB() {
 	this->len = 0;
+	this->owner = -1;
 	this->type = NONE;
 	this->name = "";
 	this->path = "";
 	this->idxBlocksId = {};
+	this->isModified = false;
 	this->authorization = emNone;
 	this->lastEditTime = this->createTime;
 }
@@ -17,7 +19,9 @@ FCB::FCB() {
 FCB::FCB(const std::string name, const std::string parentPath, FILE_TYPE type) :
 	name(name), type(type) {
 	this->len = 0;
+	this->owner = -1;
 	this->idxBlocksId = {};
+	this->isModified = false;
 	this->authorization = emNone;
 	this->path = parentPath + "/" + this->name;
 	this->createTime = std::chrono::system_clock::now();

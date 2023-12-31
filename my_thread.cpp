@@ -1,5 +1,16 @@
 #include "my_thread.h"
 
+PageTableItem::PageTableItem(const int& memBlockId, std::chrono::system_clock::time_point createTime) : memBlockId(memBlockId) {
+    this->isInMem = true;
+    this->isModified = false;
+
+    // 将当前时间转换为整数
+    auto currentTimeInt = std::chrono::duration_cast<std::chrono::seconds>(createTime.time_since_epoch()).count();
+    this->createTime = static_cast<int>(currentTimeInt);
+    this->lastUseTime = lastUseTime;
+}
+
+
 PCB::PCB() {
 	this->pid = 0;
 	this->openFiles = {};
@@ -12,8 +23,7 @@ void PCB::AppendMmu(std::vector<int> allocMem) {
 		return;
 	}
 	for (size_t ii = 0; ii < allocMem.size(); ii++) {
-		size_t virtualPageNumber = this->pageTable.size();
-		this->pageTable.push_back(std::make_pair(virtualPageNumber, allocMem[ii]));
+		this->pageTable.push_back(PageTableItem(allocMem[ii]));
 	}
 }
 
@@ -271,3 +281,4 @@ int ThreadPool<T>::GetUsedConnectionsCount() {
 	std::lock_guard<std::mutex> lock(queueMutex);
 	return usedConnections;
 }
+

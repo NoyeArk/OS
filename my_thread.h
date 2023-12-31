@@ -11,6 +11,7 @@
  * \date   December 2023
  *********************************************************************/
 
+#include <chrono>
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -24,14 +25,26 @@
 
 #include "directory.h"
 
+struct PageTableItem {
+	bool isInMem;     // 状态位：该页是否在内存中，可能被换到对换区
+	int memBlockId;   // 对应内存块号
+	bool isModified;  // 修改位：是否被修改
+	int createTime;   // 数据块进入内存时间
+	int lastUseTime;  // 最后一次使用时间，供LRU算法使用
+
+	PageTableItem(const int& memBlockId, std::chrono::system_clock::time_point createTime);
+};
+
 
 struct PCB {
 	int pid;					  // 进程标识符
 	std::vector<FCB*> openFiles;  // 当前进程打开的文件
+
 	// 进程页表 结构：用户页-实际内存块
-	std::vector<std::pair<int, int>> pageTable;  
+	std::vector<PageTableItem> pageTable;  
 
 	PCB();
+
 	// 添加新的内存块
 	void AppendMmu(std::vector<int> allocMem);
 };

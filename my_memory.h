@@ -17,6 +17,8 @@
 #include <vector>
 #include <Windows.h>
 
+#include "my_thread.h"
+
 #define MEM_SIZE       2560
 #define MEM_BLOCK_SIZE 40   // 块大小：40B
 #define MEM_BLOCK_NUM  64   // 64块：0~63
@@ -31,6 +33,7 @@ struct MCB {
 	MCB(int pid, std::chrono::system_clock::time_point lastUseTime);
 };
 
+
 class Memory {
 private:
 	char* mem;			   // 临界资源
@@ -42,7 +45,7 @@ private:
 
 private:
 	int GetCurrentIntTime();
-	int LRU(int pid);
+	int LRU(const std::vector<std::shared_ptr<PCB>>& pcbs);
 
 public:
 	Memory();
@@ -53,7 +56,7 @@ public:
 
 	void WriteMem(int blockId, char* blockData);
 	char* ReadMem(int blockId);
-	std::vector<int> PagesReplace(int pid, int pageNumToReplace);
+	std::vector<int> PagesReplace(const std::vector<std::unique_ptr<PCB>>& pcbs, int pageNumToReplace);
 };
 
 #endif
