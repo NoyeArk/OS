@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Menu</class>
+ <widget class="QWidget" name="Menu">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>111</width>
+    <height>210</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QPushButton" name="update_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>刷新</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="property_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>30</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>属性</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="compiler_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>60</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>编译执行</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="new_folder_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>90</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>新建文件夹</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="new_txt_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>120</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>新建文件</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="rename_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>180</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>重命名</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>1</y>
+     <width>111</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-color: rgb(0, 0, 0);
+border: 2px;</string>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="delete_btn">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>150</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 9pt &quot;3ds&quot;;
+font: 14pt &quot;3ds&quot;;</string>
+   </property>
+   <property name="text">
+    <string>删除文件</string>
+   </property>
+  </widget>
+  <zorder>label_2</zorder>
+  <zorder>update_btn</zorder>
+  <zorder>property_btn</zorder>
+  <zorder>compiler_btn</zorder>
+  <zorder>new_folder_btn</zorder>
+  <zorder>new_txt_btn</zorder>
+  <zorder>rename_btn</zorder>
+  <zorder>delete_btn</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,4 @@
+F:\code\os课设\disk_process\x64\Debug\disk_process.exe
+F:\code\os_coursework\disk_process\x64\Debug\disk_process.exe
+D:\CODE\Operating system\os_coursework\os_coursework\disk_process\disk_process\x64\Debug\disk_process.exe
+C:\Users\dell\Desktop\disk_process\x64\Debug\disk_process.exe

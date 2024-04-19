@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\compiler">
+      <UniqueIdentifier>{4f79b38b-0b65-40a0-8fa3-da6785ab6687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\compiler">
+      <UniqueIdentifier>{6b69e178-4e4f-4df6-9c69-cb58a8de8b50}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd\cmd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="directory\directory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="disk\disk.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\kernel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="memory\my_memory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="thread\my_thread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\errorHandle.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\lex.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\my_parser.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\table.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\utils.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\compiler.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\src\ast.cpp">
+      <Filter>源文件\compiler</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cmd\cmd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="directory\directory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="disk\disk.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\kernel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\my_memory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="thread\my_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\define.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\errorHandle.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\lex.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\my_parser.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\table.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\utils.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\compiler.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="compiler\include\ast.h">
+      <Filter>头文件\compiler</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

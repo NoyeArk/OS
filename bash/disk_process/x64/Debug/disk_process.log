@@ -1,0 +1,6 @@
+﻿  main.cpp
+  process_commucation.cpp
+C:\Users\dell\Desktop\disk_process\process_commucation.cpp(154,12): warning C4477: “printf”: 格式字符串“%x”需要类型“unsigned int”的参数，但可变参数 1 拥有了类型“char *”
+C:\Users\dell\Desktop\disk_process\process_commucation.cpp(154,12): warning C4313: "printf": 格式字符串中的 "%x" 与类型为 "char *" 的参数 1 冲突
+  正在生成代码...
+LINK : fatal error LNK1168: 无法打开 C:\Users\dell\Desktop\disk_process\x64\Debug\disk_process.exe 进行写入
